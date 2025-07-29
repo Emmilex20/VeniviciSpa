@@ -101,7 +101,7 @@ const Home = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/30"></div>
           <motion.div
-            className="relative z-10 text-white p-6 sm:p-8 md:p-10 max-w-5xl mx-auto"
+            className="relative z-10 text-white p-6 sm:p-8 md:p-10 max-w-5xl mx-auto pt-[72px] sm:pt-[80px] md:pt-[96px]"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
@@ -136,7 +136,7 @@ const Home = () => {
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 lg:text-xl"
                 variants={itemVariants}
               >
-                Nestled in the heart of Lekki Phase 1, Venivici Health Club & Urban Spa is dedicated to providing an oasis of calm and rejuvenation. We blend traditional therapies with modern wellness techniques to offer a holistic experience for **mind, body, and soul**.
+                Nestled in the heart of Lekki Phase 1, Venivici Health Club & Urban Spa is dedicated to providing an oasis of calm and rejuvenation. We blend traditional therapies with modern wellness techniques to offer a holistic experience for <strong>mind, body, and soul</strong>.
               </motion.p>
               <motion.p
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 lg:text-xl"
@@ -203,7 +203,7 @@ const Home = () => {
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 lg:text-xl"
                 variants={itemVariants}
               >
-                At Venivici, our philosophy is rooted in the belief that true wellness is a harmonious balance of the **mind, body, and spirit**. We advocate for a holistic approach, integrating ancient healing practices with modern therapeutic advancements.
+                At Venivici, our philosophy is rooted in the belief that true wellness is a harmonious balance of the <strong>mind, body, and spirit</strong>. We advocate for a holistic approach, integrating ancient healing practices with modern therapeutic advancements.
               </motion.p>
               <motion.p
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 lg:text-xl"
