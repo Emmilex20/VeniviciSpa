@@ -1,18 +1,23 @@
 // src/pages/Home.js
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import AnimatedButton from '../components/AnimatedButton';
-import ServiceCard from '../components/ServiceCard';
-import TestimonialCard from '../components/TestimonialCard'; // Import the TestimonialCard component
-import { services } from '../data/servicesData';
-import { testimonials } from '../data/testimonialsData'; // Correct import for testimonials data
+import ServiceCard from '../components/ServiceCard'; // This component still works for services
+import TestimonialCard from '../components/TestimonialCard';
+import CountUpAnimation from '../components/CountUpAnimation';
+import { treatments } from '../data/treatmentsData'; // <<< IMPORT FROM NEW FILE
+import { testimonials } from '../data/testimonialsData';
 
-// Import images
+// Make sure you have these images or replace with actual paths
 import heroBg from '../assets/images/hero-bg.jpg';
-import aboutSpaImg from '../assets/images/about-spa.jpeg';
-import facilitiesImg1 from '../assets/images/facilities-1.jpeg';
-import facilitiesImg2 from '../assets/images/facilities-2.jpg';
+import aboutSpaImg from '../assets/images/about-spa.jpeg'; // Assuming this exists
+import facilitiesImg1 from '../assets/images/facilities-1.jpeg'; // Assuming this exists
+import facilitiesImg2 from '../assets/images/facilities-2.jpg'; // Assuming this exists
+import philosophyImg from '../assets/images/philosophyImg.jpeg';
+import expertPlaceholder from '../assets/images/expertPlaceholder.jpg';
+
 
 // Framer Motion Variants for sections
 const sectionVariants = {
@@ -21,44 +26,72 @@ const sectionVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.7, // Slightly reduced duration for snappier appearance
-      ease: "easeOut", // Standard easing
-      staggerChildren: 0.15, // STAGGER CHILDREN HERE
+      duration: 0.7,
+      ease: "easeOut",
+      staggerChildren: 0.15,
     }
   },
 };
 
 // Framer Motion Variants for children elements (e.g., items in a grid or text blocks within a section)
 const itemVariants = {
-  hidden: { opacity: 0, y: 30 }, // Slightly more pronounced initial y
+  hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
+// Modal Variants
+const modalVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2, ease: "easeIn" } },
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } },
+};
+
+// Placeholder data for new sections
+const experts = [
+  { id: 1, name: 'Dr. Amina Yusuf', title: 'Lead Physiotherapist', bio: 'Specializing in sports injuries and post-operative rehabilitation.', img: expertPlaceholder },
+  { id: 2, name: 'Grace Adekunle', title: 'Senior Massage Therapist', bio: 'Expert in deep tissue and aromatherapy, focusing on holistic relaxation.', img: expertPlaceholder },
+  { id: 3, name: 'Chike Obi', title: 'Wellness Consultant', bio: 'Guiding clients through personalized wellness plans and nutritional advice.', img: expertPlaceholder },
+];
+
+
 const Home = () => {
-  // Get the first 3 services to feature on the homepage
-  const featuredServices = services.slice(0, 3);
-  // Get the first 3 testimonials (or adjust as needed)
+  // Filter treatments to get featured services and homepage offers
+  const featuredServices = treatments.filter(t => t.type === 'service').slice(0, 3);
+  const homepageOffers = treatments.filter(t => t.type === 'offer').slice(0, 3);
   const featuredTestimonials = testimonials.slice(0, 3);
+
+  // State for the modal
+  const [selectedService, setSelectedService] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleLearnMore = (service) => {
+    setSelectedService(service);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedService(null);
+  };
 
   return (
     <>
       <Helmet>
         <title>Venivici Spa - Luxury Health Club & Urban Spa in Lekki, Lagos</title>
         <meta name="description" content="Experience unparalleled wellness and luxurious treatments at Venivici Health Club & Urban Spa. Rejuvenate your mind, body, and soul in Lekki, Lagos." />
-        {/* Open Graph / Social Media Meta Tags */}
         <meta property="og:title" content="Venivici Spa - Luxury Health & Urban Spa" />
         <meta property="og:description" content="Escape. Rejuvenate. Rediscover You. Experience unparalleled wellness and luxurious treatments in Lekki, Lagos." />
-        {/* IMPORTANT: Replace with an actual high-quality image URL for social sharing */}
         <meta property="og:image" content="https://venivici.com/images/hero-social.jpg" />
-        {/* IMPORTANT: Replace with your actual website URL */}
         <meta property="og:url" content="https://venivici.com/" />
         <meta property="og:type" content="website" />
       </Helmet>
 
-      {/* Padding top to account for fixed Navbar.
-            These values should align with your Navbar's actual height.
-            Current values (72px, 80px, 96px) seem appropriate based on a typical Navbar height with a logo.
-      */}
       <div className="pt-[72px] sm:pt-[80px] md:pt-[96px]">
 
         {/* --- Hero Section --- */}
@@ -66,14 +99,13 @@ const Home = () => {
           className="relative h-screen min-h-[500px] flex items-center justify-center text-center bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBg})` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/30"></div> {/* Enhanced Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/30"></div>
           <motion.div
             className="relative z-10 text-white p-6 sm:p-8 md:p-10 max-w-5xl mx-auto"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
           >
-            {/* Adjusted H1 font size for smaller screens for better fit */}
             <h1 className="text-3xl sm:text-4xl lg:text-7xl font-serif font-extrabold leading-tight mb-4 drop-shadow-lg">
               Escape. Rejuvenate. <span className="text-veniviciGreen">Rediscover You.</span>
             </h1>
@@ -93,8 +125,7 @@ const Home = () => {
           viewport={{ once: true, amount: 0.3 }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <motion.div className="text-center md:text-left"> {/* This div is a direct child for staggerChildren */}
-              {/* Adjusted H2 font size for smaller screens */}
+            <motion.div className="text-center md:text-left">
               <motion.h2
                 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark mb-6 leading-tight"
                 variants={itemVariants}
@@ -105,7 +136,7 @@ const Home = () => {
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 lg:text-xl"
                 variants={itemVariants}
               >
-                Nestled in the heart of Lekki Phase 1, Venivici Health Club & Urban Spa is dedicated to providing an oasis of calm and rejuvenation. We blend traditional therapies with modern wellness techniques to offer a holistic experience for <strong>mind, body, and soul</strong>.
+                Nestled in the heart of Lekki Phase 1, Venivici Health Club & Urban Spa is dedicated to providing an oasis of calm and rejuvenation. We blend traditional therapies with modern wellness techniques to offer a holistic experience for **mind, body, and soul**.
               </motion.p>
               <motion.p
                 className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 lg:text-xl"
@@ -132,9 +163,60 @@ const Home = () => {
                 alt="Venivici Spa serene interior"
                 className="w-full h-80 md:h-[400px] lg:h-[500px] object-cover rounded-lg"
               />
-              {/* Subtle decorative elements */}
               <div className="absolute -bottom-4 -left-4 w-48 h-48 bg-veniviciGreen opacity-20 rounded-full mix-blend-multiply filter blur-xl"></div>
               <div className="absolute -top-4 -right-4 w-32 h-32 bg-veniviciGold opacity-20 rounded-full mix-blend-multiply filter blur-xl"></div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* --- Our Philosophy Section (New) --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+            <motion.div
+              className="relative rounded-lg overflow-hidden shadow-2xl"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <img
+                src={philosophyImg}
+                alt="Venivici Spa holistic approach"
+                className="w-full h-80 md:h-[400px] lg:h-[500px] object-cover rounded-lg"
+              />
+              <div className="absolute inset-0 bg-veniviciGreen/10 backdrop-brightness-75"></div>
+            </motion.div>
+            <motion.div className="text-center md:text-left">
+              <motion.h2
+                className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark mb-6 leading-tight"
+                variants={itemVariants}
+              >
+                Our Guiding <span className="text-veniviciGreen">Philosophy</span>
+              </motion.h2>
+              <motion.p
+                className="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 lg:text-xl"
+                variants={itemVariants}
+              >
+                At Venivici, our philosophy is rooted in the belief that true wellness is a harmonious balance of the **mind, body, and spirit**. We advocate for a holistic approach, integrating ancient healing practices with modern therapeutic advancements.
+              </motion.p>
+              <motion.p
+                className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 lg:text-xl"
+                variants={itemVariants}
+              >
+                We are committed to empowering our clients to achieve optimal health and inner peace, providing a personalized journey towards enduring vitality and a profound sense of well-being.
+              </motion.p>
+              <motion.div
+                className="mt-8"
+                variants={itemVariants}
+              >
+                <AnimatedButton to="/about">Our Mission & Values</AnimatedButton>
+              </motion.div>
             </motion.div>
           </div>
         </motion.section>
@@ -147,75 +229,80 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {/* Adjusted H2 font size for smaller screens */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Why Choose <span className="text-veniviciGreen">Venivici Spa?</span>
           </h2>
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 - Removed individual transition/delay, relying on sectionVariants stagger */}
             <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
-              // viewport and transition are now handled by parent sectionVariants and itemVariants
             >
               <div className="text-veniviciGreen text-5xl mb-4">
-                <i className="fas fa-hand-holding-heart"></i> {/* Icon: Holistic Approach */}
+                <i className="fas fa-hand-holding-heart"></i>
               </div>
               <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Holistic Well-being</h3>
-              <p className="text-gray-700 text-base leading-relaxed"> {/* Adjusted font size for smaller screens */}
+              <p className="text-gray-700 text-base leading-relaxed">
                 We focus on integrating physical, mental, and spiritual health to offer a truly complete wellness journey.
               </p>
             </motion.div>
-            {/* Feature 2 */}
             <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
               <div className="text-veniviciGreen text-5xl mb-4">
-                <i className="fas fa-star"></i> {/* Icon: Expert Therapists */}
+                <i className="fas fa-star"></i>
               </div>
               <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Expert Therapists</h3>
-              <p className="text-gray-700 text-base leading-relaxed"> {/* Adjusted font size for smaller screens */}
+              <p className="text-gray-700 text-base leading-relaxed">
                 Our team comprises highly trained and experienced professionals dedicated to providing exceptional care.
               </p>
             </motion.div>
-            {/* Feature 3 */}
             <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
               <div className="text-veniviciGreen text-5xl mb-4">
-                <i className="fas fa-spa"></i> {/* Icon: Serene Environment */}
+                <i className="fas fa-spa"></i>
               </div>
               <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Serene Environment</h3>
-              <p className="text-gray-700 text-base leading-relaxed"> {/* Adjusted font size for smaller screens */}
+              <p className="text-gray-700 text-base leading-relaxed">
                 Step into a tranquil oasis designed to melt away stress and inspire deep relaxation.
               </p>
             </motion.div>
-            {/* Feature 4 (Optional, if you want more points) */}
-            <motion.div
+             <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
               <div className="text-veniviciGreen text-5xl mb-4">
-                <i className="fas fa-tags"></i> {/* Icon: Tailored Experiences */}
+                <i className="fas fa-tags"></i>
               </div>
               <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Tailored Experiences</h3>
-              <p className="text-gray-700 text-base leading-relaxed"> {/* Adjusted font size for smaller screens */}
+              <p className="text-gray-700 text-base leading-relaxed">
                 We offer personalized treatments to meet your unique needs and preferences for optimal results.
               </p>
             </motion.div>
-            {/* Feature 5 (Optional) */}
             <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
               <div className="text-veniviciGreen text-5xl mb-4">
-                <i className="fas fa-award"></i> {/* Icon: Proven Results */}
+                <i className="fas fa-award"></i>
               </div>
               <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Proven Results</h3>
-              <p className="text-gray-700 text-base leading-relaxed"> {/* Adjusted font size for smaller screens */}
+              <p className="text-gray-700 text-base leading-relaxed">
                 Clients consistently praise our effective treatments and the profound sense of well-being they achieve.
+              </p>
+            </motion.div>
+             <motion.div
+              className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
+              variants={itemVariants}
+            >
+              <div className="text-veniviciGreen text-5xl mb-4">
+                <i className="fas fa-certificate"></i>
+              </div>
+              <h3 className="text-2xl font-semibold text-veniviciDark mb-3">Certified & Safe</h3>
+              <p className="text-gray-700 text-base leading-relaxed">
+                Adhering to the highest standards of safety and hygiene for your peace of mind.
               </p>
             </motion.div>
           </div>
@@ -229,11 +316,10 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {/* Adjusted H2 font size for smaller screens */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Our State-of-the-Art <span className="text-veniviciGreen">Facilities</span>
           </h2>
-          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed"> {/* Adjusted font size */}
+          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
             Step into our meticulously designed space, where every detail is crafted to enhance your relaxation and wellness journey.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -247,34 +333,28 @@ const Home = () => {
               <img src={facilitiesImg1} alt="Spa Treatment Room" className="w-full h-64 object-cover rounded-lg shadow-md" />
               <img src={facilitiesImg2} alt="Relaxation Lounge" className="w-full h-64 object-cover rounded-lg shadow-md sm:mt-8 lg:mt-16" />
             </motion.div>
-            {/* **ADJUSTED BLOCK FOR MOBILE-FRIENDLY ANIMATION** */}
             <motion.div
               className="text-center md:text-left"
               variants={{
-                // Base state for hidden
                 hidden: { opacity: 0, y: 50 },
-                // Default 'visible' state (for mobile, and initial state for larger screens)
                 visible: {
                   opacity: 1,
                   y: 0,
                   transition: { duration: 0.7, ease: "easeOut" }
                 },
-                // Specific 'md' breakpoint visible state (adds x-axis animation)
                 mdVisible: {
                   opacity: 1,
-                  x: 0, // Slide from right
+                  x: 0,
                   y: 0,
                   transition: { duration: 0.7, ease: "easeOut" }
                 }
               }}
               initial="hidden"
-              // For small screens, it will animate to 'visible' (fade-up).
-              // For md and larger, it will also consider 'mdVisible'
               whileInView={["visible", "mdVisible"]}
               viewport={{ once: true, amount: 0.5 }}
             >
-              <h3 className="text-2xl sm:text-3xl font-serif text-veniviciDark mb-4">Designed for Your Ultimate Comfort</h3> {/* Adjusted H3 size */}
-              <ul className="text-base text-gray-700 space-y-3 list-none pl-0"> {/* Adjusted font size */}
+              <h3 className="text-2xl sm:text-3xl font-serif text-veniviciDark mb-4">Designed for Your Ultimate Comfort</h3>
+              <ul className="text-base text-gray-700 space-y-3 list-none pl-0">
                 <li className="flex items-center justify-center md:justify-start">
                   <i className="fas fa-check-circle text-veniviciGreen mr-3"></i>
                   <span>Luxurious Private Treatment Rooms</span>
@@ -303,6 +383,49 @@ const Home = () => {
           </div>
         </motion.section>
 
+        {/* --- Meet Our Experts Section (New) --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Meet Our <span className="text-veniviciGreen">Wellness Experts</span>
+          </h2>
+          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            Our team of highly skilled and compassionate professionals is dedicated to guiding you on your wellness journey.
+          </p>
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {experts.map((expert) => (
+              <motion.div
+                key={expert.id}
+                className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center"
+                variants={itemVariants}
+              >
+                <img
+                  src={expertPlaceholder} // Using placeholder for now
+                  alt={expert.name}
+                  className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-veniviciGreen shadow-md"
+                />
+                <h3 className="text-xl font-semibold text-veniviciDark mb-2">{expert.name}</h3>
+                <p className="text-veniviciGreen text-md font-medium mb-3">{expert.title}</p>
+                <p className="text-gray-700 text-sm leading-relaxed">{expert.bio}</p>
+              </motion.div>
+            ))}
+          </div>
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <AnimatedButton to="/about">View All Team Members</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
         {/* --- Featured Services Section --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciGray"
@@ -311,14 +434,13 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {/* Adjusted H2 font size for smaller screens */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Our Signature <span className="text-veniviciGreen">Treatments & Services</span>
           </h2>
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* ServiceCard itself now uses itemVariants due to sectionVariants' staggerChildren */}
             {featuredServices.map((service, index) => (
-              <ServiceCard key={service.id} service={service} index={index} />
+              // Pass the handleLearnMore function as onLearnMore prop
+              <ServiceCard key={service.id} service={service} index={index} onLearnMore={handleLearnMore} variants={itemVariants} />
             ))}
           </div>
           <motion.div
@@ -332,6 +454,54 @@ const Home = () => {
           </motion.div>
         </motion.section>
 
+        {/* --- Special Offers & Packages Section (New) --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
+          </h2>
+          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
+          </p>
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {homepageOffers.map((offer) => (
+              <motion.div
+                key={offer.id}
+                className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center border-t-4 border-veniviciGold hover:shadow-2xl transition-shadow duration-300"
+                variants={itemVariants}
+              >
+                {/* Display image for offers on homepage as well */}
+                {offer.imageUrl && (
+                  <img src={offer.imageUrl} alt={offer.title} className="w-full h-48 object-cover rounded-md mb-4" />
+                )}
+                <div className="text-veniviciGreen text-5xl mb-4">
+                  <i className={offer.icon}></i>
+                </div>
+                <h3 className="text-2xl font-semibold text-veniviciDark mb-2">{offer.title}</h3>
+                <p className="text-gray-700 text-base leading-relaxed mb-4 flex-grow">{offer.description}</p>
+                <div className="text-veniviciGold text-2xl font-bold mb-4">{offer.price}</div>
+                <Link to="/booking" className="inline-block bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold">
+                  Book Now
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <AnimatedButton to="/offers" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
         {/* --- Testimonials Section --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 container mx-auto"
@@ -340,13 +510,12 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {/* Adjusted H2 font size for smaller screens */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             What Our Clients <span className="text-veniviciGreen">Say</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredTestimonials.map((testimonial, index) => (
-              <TestimonialCard // Use the dedicated TestimonialCard component
+              <TestimonialCard
                 key={testimonial.id}
                 testimonial={testimonial}
                 index={index}
@@ -364,6 +533,106 @@ const Home = () => {
           </motion.div>
         </motion.section>
 
+        {/* --- Quick Facts / Achievements Section (Now with Count-Up Animation!) --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-r from-veniviciGreen to-[#5cb85c] text-white text-center"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-12">
+            Venivici by the <span className="text-veniviciGold">Numbers</span>
+          </h2>
+          <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <motion.div className="flex flex-col items-center" variants={itemVariants}>
+              <div className="text-veniviciGold text-6xl font-bold mb-2">
+                <CountUpAnimation value={5} suffix="+" />
+              </div>
+              <p className="text-xl font-semibold">Years of Experience</p>
+            </motion.div>
+            <motion.div className="flex flex-col items-center" variants={itemVariants}>
+              <div className="text-veniviciGold text-6xl font-bold mb-2">
+                <CountUpAnimation value={1000} suffix="+" />
+              </div>
+              <p className="text-xl font-semibold">Happy Clients</p>
+            </motion.div>
+            <motion.div className="flex flex-col items-center" variants={itemVariants}>
+              <div className="text-veniviciGold text-6xl font-bold mb-2">
+                <CountUpAnimation value={15} suffix="+" />
+              </div>
+              <p className="text-xl font-semibold">Specialized Services</p>
+            </motion.div>
+            <motion.div className="flex flex-col items-center" variants={itemVariants}>
+              <div className="text-veniviciGold text-6xl font-bold mb-2">
+                <CountUpAnimation value={98} suffix="%" />
+              </div>
+              <p className="text-xl font-semibold">Client Satisfaction</p>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* --- Integrated Contact & Location Snippet (New) --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <motion.div className="text-center md:text-left" variants={itemVariants}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark mb-6 leading-tight">
+                Visit Us in <span className="text-veniviciGreen">Lekki, Lagos</span>
+              </h2>
+              <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 lg:text-xl">
+                We're conveniently located to serve you. Step into our serene environment and begin your journey to ultimate well-being.
+              </p>
+              <div className="space-y-4 text-left inline-block">
+                <p className="flex items-center text-gray-800 text-lg">
+                  <i className="fas fa-map-marker-alt text-veniviciGreen mr-3"></i>
+                  <span>10 Freedom Way, Lekki Phase 1, Lagos, Nigeria</span>
+                </p>
+                <p className="flex items-center text-gray-800 text-lg">
+                  <i className="fas fa-phone-alt text-veniviciGreen mr-3"></i>
+                  <span>+234 809 123 4567</span>
+                </p>
+                <p className="flex items-center text-gray-800 text-lg">
+                  <i className="fas fa-envelope text-veniviciGreen mr-3"></i>
+                  <span>info@venivici.com</span>
+                </p>
+                <p className="flex items-center text-gray-800 text-lg">
+                  <i className="fas fa-clock text-veniviciGreen mr-3"></i>
+                  <span>Mon - Fri: 9:00 AM - 7:00 PM | Sat: 10:00 AM - 6:00 PM</span>
+                </p>
+              </div>
+              <motion.div className="mt-8 text-center md:text-left" variants={itemVariants}>
+                <AnimatedButton to="/contact">Get Directions & Contact</AnimatedButton>
+              </motion.div>
+            </motion.div>
+            <motion.div
+              className="relative rounded-lg overflow-hidden shadow-2xl h-80 md:h-[450px]"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.303977926838!2d3.473539874836696!3d6.479532593504381!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103bf6f345862d61%3A0x8f78a78c1a700688!2s10%20Freedom%20Way%2C%20Lekki%20Phase%201%2C%20Lagos!5e0!3m2!1sen!2sng!4v1700000000000!5m2!1sen!2sng" // Example Google Maps embed URL
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Venivici Spa Location"
+                className="rounded-lg"
+              ></iframe>
+            </motion.div>
+          </div>
+        </motion.section>
+
+
         {/* --- Final Call to Action Section --- */}
         <motion.section
           className="py-20 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-r from-veniviciGreen to-[#5cb85c] text-white text-center shadow-inner"
@@ -372,11 +641,10 @@ const Home = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          {/* Adjusted H2 font size for smaller screens */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-6">
             Ready to <span className="text-veniviciGold">Rejuvenate?</span>
           </h2>
-          <p className="text-lg sm:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed"> {/* Adjusted font size */}
+          <p className="text-lg sm:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed">
             Take the first step towards ultimate relaxation and holistic well-being. Book your personalized session today and experience the Venivici difference.
           </p>
           <AnimatedButton
@@ -388,6 +656,78 @@ const Home = () => {
         </motion.section>
 
       </div>
+
+      {/* Service/Treatment Detail Modal */}
+      <AnimatePresence>
+        {isModalOpen && selectedService && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70" // Added backdrop color
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={closeModal} // Close modal when clicking on backdrop
+          >
+            <motion.div
+              className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative p-6 sm:p-8"
+              variants={modalVariants}
+              onClick={(e) => e.stopPropagation()} // Prevent modal from closing when clicking inside
+            >
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
+              <h3 className="text-3xl font-serif text-veniviciDark mb-4 border-b pb-2">
+                {selectedService.title}
+              </h3>
+              {selectedService.imageUrl && (
+                <img
+                  src={selectedService.imageUrl}
+                  alt={selectedService.title}
+                  className="w-full h-48 object-cover rounded-md mb-4"
+                />
+              )}
+              <p className="text-gray-700 text-base leading-relaxed mb-4">
+                {selectedService.description}
+              </p>
+
+              {/* Display inclusions if available (formerly details/benefits) */}
+              {selectedService.inclusions && selectedService.inclusions.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-veniviciDark mb-2">
+                    {selectedService.type === 'service' ? 'Benefits:' : 'Package Includes:'}
+                  </h4>
+                  <ul className="list-disc list-inside text-gray-600 space-y-1">
+                    {selectedService.inclusions.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {selectedService.duration && selectedService.type === 'service' && (
+                  <p className="text-lg text-gray-600 mb-2">
+                    <span className="font-semibold">Duration:</span> {selectedService.duration}
+                  </p>
+              )}
+
+              {selectedService.price && (
+                <p className="text-lg font-bold text-veniviciGreen mb-4">
+                  Price: {selectedService.price}
+                </p>
+              )}
+              <div className="mt-6 text-center">
+                <AnimatedButton to="/booking" className="inline-block px-6 py-3 text-lg">
+                  Book This Treatment
+                </AnimatedButton>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -1,17 +1,18 @@
 // src/pages/Services.js
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ServiceCard from '../components/ServiceCard';
 import ServiceDetailSection from '../components/ServiceDetailSection';
-import ServiceDetailModal from '../components/ServiceDetailModal'; // Import the new modal component
-import { services } from '../data/servicesData';
+import ServiceDetailModal from '../components/ServiceDetailModal';
+import { treatments } from '../data/treatmentsData'; // <<< UPDATED IMPORT: Use treatments from the consolidated file
 import { Helmet } from 'react-helmet-async';
 
 // Import an image for the benefits section (add this to your assets/images folder)
+// If you don't have this, make sure to add it or replace it with an existing one.
 import benefitsSpaImg from '../assets/images/benefits-spa.jpg'; // You'll need to add this image
+import servicePageHero from '../assets/images/services-overview.jpg'; // Assuming you have a specific hero image for services
 
 // --- Framer Motion Variants ---
-// (Keep all your existing Framer Motion variants here as before)
 // Main page wrapper animation
 const pageVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -21,8 +22,8 @@ const pageVariants = {
     transition: {
       duration: 0.7,
       ease: "easeOut",
-      when: "beforeChildren", // Animate parent first
-      staggerChildren: 0.1, // Stagger children within the page wrapper
+      when: "beforeChildren",
+      staggerChildren: 0.1,
     }
   },
 };
@@ -36,7 +37,7 @@ const headingVariants = {
     transition: {
       duration: 0.6,
       ease: "easeOut",
-      delay: 0.2, // Slight delay for headings
+      delay: 0.2,
     }
   },
 };
@@ -49,7 +50,7 @@ const textVariants = {
     transition: {
       duration: 0.6,
       ease: "easeOut",
-      delay: 0.3, // Slight delay for text paragraphs
+      delay: 0.3,
     }
   },
 };
@@ -60,8 +61,8 @@ const cardGridVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Stagger each ServiceCard's animation
-      delayChildren: 0.4, // Delay before cards start animating
+      staggerChildren: 0.1,
+      delayChildren: 0.4,
     }
   },
 };
@@ -112,6 +113,9 @@ const Services = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
+  // Filter treatments to get only services
+  const allServices = treatments.filter(treatment => treatment.type === 'service');
+
   const handleOpenModal = (service) => {
     setSelectedService(service);
     setIsModalOpen(true);
@@ -141,6 +145,26 @@ const Services = () => {
         animate="visible"
         className="pt-[72px] sm:pt-[80px] md:pt-[96px] pb-20 px-4 sm:px-6 lg:px-8 bg-veniviciLightGray"
       >
+         {/* Hero Section for Services */}
+         <section className="relative h-64 sm:h-80 md:h-96 flex items-center justify-center text-center bg-cover bg-center mb-16 rounded-lg overflow-hidden shadow-xl"
+          style={{ backgroundImage: `url(${servicePageHero || 'https://images.unsplash.com/photo-1596753069176-597282b99527?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'})` }} // Fallback image
+        >
+          <div className="absolute inset-0 bg-black/60"></div>
+          <motion.div
+            className="relative z-10 text-white p-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif font-bold mb-3">
+              Our Signature <span className="text-veniviciGold">Treatments</span>
+            </h1>
+            <p className="text-base sm:text-lg lg:text-xl max-w-2xl mx-auto">
+              Indulge in a wide array of specialized services designed for your ultimate well-being.
+            </p>
+          </motion.div>
+        </section>
+
         <div className="container mx-auto">
           <motion.h1
             variants={headingVariants}
@@ -163,7 +187,7 @@ const Services = () => {
             animate="visible"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-20"
           >
-            {services.map((service, index) => (
+            {allServices.map((service, index) => ( // <<< Use allServices
               <ServiceCard
                 key={service.id}
                 service={service}
@@ -174,7 +198,7 @@ const Services = () => {
             ))}
           </motion.div>
 
-          
+
           {/* --- New Section: Benefits of Spa Treatments --- */}
           <motion.section
             className="py-16 sm:py-20 bg-white rounded-xl shadow-2xl mb-20"
@@ -196,7 +220,7 @@ const Services = () => {
                   className="rounded-lg overflow-hidden shadow-xl"
                 >
                   <img
-                    src={benefitsSpaImg}
+                    src={benefitsSpaImg || 'https://images.unsplash.com/photo-1544161511-b06227b4097f?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} // Fallback image
                     alt="Woman relaxing during a spa treatment"
                     className="w-full h-80 object-cover"
                   />
@@ -264,7 +288,8 @@ const Services = () => {
             Explore Treatments in <span className="text-veniviciGreen">Detail</span>
           </motion.h2>
 
-          {services.map((service, index) => (
+          {/* Using allServices for ServiceDetailSection as well */}
+          {allServices.map((service, index) => (
             <ServiceDetailSection key={`detail-${service.id}`} service={service} index={index} />
           ))}
 
@@ -290,7 +315,7 @@ const Services = () => {
               <a
                 href="/contact"
                 className="inline-block bg-veniviciGold text-veniviciDark px-8 py-4 rounded-full text-lg font-semibold shadow-lg
-                           hover:bg-white hover:text-veniviciDark hover:shadow-xl transition duration-300 transform hover:scale-105"
+                             hover:bg-white hover:text-veniviciDark hover:shadow-xl transition duration-300 transform hover:scale-105"
               >
                 Book a Free Consultation
               </a>
@@ -312,7 +337,7 @@ const Services = () => {
             <a
               href="/contact"
               className="inline-block bg-veniviciGreen text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg
-                         hover:bg-opacity-90 hover:shadow-xl transition duration-300 transform hover:scale-105"
+                             hover:bg-opacity-90 hover:shadow-xl transition duration-300 transform hover:scale-105"
             >
               Contact Us Directly
             </a>

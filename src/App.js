@@ -20,6 +20,7 @@ const Testimonials = lazy(() => import('./pages/Testimonials'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const FAQs = lazy(() => import('./pages/FAQs'));
 const Terms = lazy(() => import('./pages/Terms'));
+const Offers = lazy(() => import('./pages/Offers'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/faqs" element={<FAQs />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/offers" element={<Offers />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
