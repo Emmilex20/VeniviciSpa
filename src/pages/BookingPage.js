@@ -478,8 +478,8 @@ const BookingPage = () => {
                 <meta name="description" content="Request an appointment at Venivici Health Club & Urban Spa in Lekki, Lagos. Easily book your preferred massage, hydrotherapy, or detox session online." />
                 <meta property="og:title" content="Venivici Spa - Book Appointment" />
                 <meta property="og:description" content="Request your next luxury spa or health treatment at Venivici." />
-                <meta property="og:image" content={`http://localhost:3000${genericHeroImg}`} /> {/* Using local image for development */}
-                <meta property="og:url" content="http://localhost:3000/booking" /> {/* Update with your actual deployment URL */}
+                <meta property="og:image" content={`https://venivici-spa.vercel.app/${genericHeroImg}`} /> {/* Using local image for development */}
+                <meta property="og:url" content="https://venivici-spa.vercel.app/" /> {/* Update with your actual deployment URL */}
             </Helmet>
 
             <motion.div

@@ -150,7 +150,7 @@ const Services = () => {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/services'); // Fetch from your backend
+                const response = await fetch('https://venivicispa.onrender.com/api/services'); // Fetch from your backend
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
