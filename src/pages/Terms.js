@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 
-import genericHeroImg from '../assets/images/contact-hero.jpg'; // Re-using image
+import genericHeroImg from '../assets/images/contact-hero.jpg';
 
 const Terms = () => {
   // Framer Motion Variants
@@ -25,11 +25,11 @@ const Terms = () => {
   return (
     <>
       <Helmet>
-        <title>Terms & Conditions - Venivici Health Club & Urban Spa</title>
-        <meta name="description" content="Read the Terms and Conditions for using services and the website of Venivici Health Club & Urban Spa in Lekki, Lagos." />
-        <meta property="og:title" content="Venivici Spa - Terms & Conditions" />
-        <meta property="og:description" content="Important information regarding your use of our services and website." />
-        <meta property="og:url" content="https://venivici.com/terms" />
+        <title>Privacy Policy - Venivici Health Club & Urban Spa</title> {/* Changed title based on your provided content */}
+        <meta name="description" content="Read the Privacy Policy for Venivici Health Club & Urban Spa in Lekki, Lagos." />
+        <meta property="og:title" content="Venivici Spa - Privacy Policy" />
+        <meta property="og:description" content="Our commitment to protecting your personal information." />
+        <meta property="og:url" content="https://venivici.com/privacy-policy" /> {/* Updated URL */}
       </Helmet>
 
       <motion.div
@@ -49,10 +49,10 @@ const Terms = () => {
         >
           <motion.div variants={sectionVariants} className="relative z-10 max-w-4xl mx-auto py-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-2">
-              Terms & Conditions
+              Privacy Policy
             </h1>
             <p className="text-lg sm:text-xl opacity-90">
-              Understanding our mutual agreement.
+              Your privacy is important to us.
             </p>
           </motion.div>
         </div>
@@ -60,80 +60,90 @@ const Terms = () => {
         {/* Content Section */}
         <motion.section
           initial="hidden"
+          // --- CHANGE HERE ---
+          // Option 1: Lower the amount threshold significantly.
+          // whileInView="visible"
+          // viewport={{ once: true, amount: 0.05 }} // Try 5% visibility
+          // --- OR ---
+          // Option 2: Remove 'once' and 'amount' to always animate when it enters viewport for the first time
+          // This can be good for debugging, but `once: true` is usually desired.
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true }} // Default amount is 0 (any part of the element visible)
+
+          // --- OR ---
+          // Option 3: For immediate display on component load, similar to the hero
+          // If you want this section to animate immediately after the hero,
+          // like the top-level motion.div, use `animate="visible"` here too.
+          // This means it won't wait for scroll.
+          // animate="visible"
+          // initial="hidden" // Keep initial hidden
+          // --- END CHANGE ---
+
           variants={sectionVariants}
           className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12 bg-white rounded-lg shadow-xl p-8 md:p-12"
         >
           <div className="prose max-w-none text-gray-700">
-            <motion.p variants={itemFadeIn} className="mb-6"> {/* <--- itemFadeIn applied here */}
+            <motion.p variants={itemFadeIn} className="mb-6">
               <strong>Last Updated: July 29, 2025</strong>
             </motion.p>
-            <motion.p variants={itemFadeIn} className="mb-6"> {/* <--- itemFadeIn applied here */}
-              Welcome to Venivici Health Club & Urban Spa! These Terms and Conditions ("Terms") govern your use of the Venivici website, venivici.com (the "Site"), and the services provided by Venivici Health Club & Urban Spa (the "Services"). By accessing or using the Site and our Services, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Site or use the Services.
-            </motion.p>
-
-            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">1. Acceptance of Terms</motion.h3> {/* <--- itemFadeIn applied here */}
             <motion.p variants={itemFadeIn} className="mb-6">
-              By accessing and using our Site and Services, you acknowledge that you have read, understood, and agree to be bound by these Terms and our Privacy Policy.
+              Venivici Health Club & Urban Spa ("we," "our," or "us") is committed to protecting the privacy of our clients and website visitors. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website venivici.com (the "Site") or use our services. Please read this Privacy Policy carefully. If you do not agree with the terms of this Privacy Policy, please do not access the Site or use our services.
             </motion.p>
 
-            {/* Apply itemFadeIn to other headings and paragraphs as desired for animation */}
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">2. Services Offered</h3>
-            <p className="mb-6">
-              Venivici Health Club & Urban Spa offers a range of wellness and fitness services including spa treatments, health club access, personal training, and more, as detailed on our Site. All services are subject to availability and our internal policies.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">1. Information We Collect</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-4">
+              We may collect personal information from you in a variety of ways, including, but not limited to, when you visit our Site, register on the Site, place an order, fill out a form, use our services, and in connection with other activities, services, features or resources we make available.
+            </motion.p>
+            <motion.ul variants={itemFadeIn} className="list-disc list-inside space-y-2 mb-6">
+              <li><strong>Personal Identifiable Information:</strong> Name, email address, phone number, physical address, payment information (processed securely via third-party providers), health information (for spa/health services, collected with explicit consent).</li>
+              <li><strong>Non-Personal Identifiable Information:</strong> Browser name, type of computer, technical information about Users means of connection to our Site (e.g., operating system and the Internet service providers utilized), and other similar information.</li>
+              <li><strong>Usage Data:</strong> Information on how the Site is accessed and used, such as IP address, unique device identifiers, pages visited, time spent on pages, and referring URLs.</li>
+            </motion.ul>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">3. Bookings and Cancellations</h3>
-            <ul className="list-disc list-inside space-y-2 mb-6">
-              <li><strong>Booking:</strong> All bookings are subject to availability. We recommend booking in advance, especially for popular treatments or peak times.</li>
-              <li><strong>Payment:</strong> Full payment or a deposit may be required at the time of booking, as specified for the particular service.</li>
-              <li><strong>Cancellations & Rescheduling:</strong> We require at least 24 hours notice for any cancellation or rescheduling of appointments. Cancellations made with less than 24 hours notice may incur a 50% charge of the service fee. No-shows will be charged the full service fee.</li>
-              <li><strong>Late Arrivals:</strong> Please arrive at least 15 minutes prior to your scheduled appointment. Late arrivals may result in a reduced treatment time to avoid inconveniencing other clients, with no adjustment to the service price.</li>
-            </ul>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">2. How We Use Your Information</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">We use the information we collect in various ways, including to:</motion.p>
+            <motion.ul variants={itemFadeIn} className="list-disc list-inside space-y-2 mb-6">
+              <li>Provide, operate, and maintain our services.</li>
+              <li>Improve, personalize, and expand our services.</li>
+              <li>Understand and analyze how you use our services.</li>
+              <li>Develop new products, services, features, and functionality.</li>
+              <li>Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the Site, and for marketing and promotional purposes.</li>
+              <li>Process your transactions and manage your appointments.</li>
+              <li>Send you emails.</li>
+              <li>Find and prevent fraud.</li>
+            </motion.ul>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">4. Health and Wellness Information</h3>
-            <p className="mb-6">
-              The information provided on our Site is for general informational purposes only and does not constitute medical advice. Clients are responsible for disclosing any relevant health conditions, allergies, or concerns to our staff prior to any treatment or use of facilities. We reserve the right to refuse service if we deem it unsafe for the client or our staff.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">3. Disclosure of Your Information</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">We may share information we have collected about you in certain situations. Your information may be disclosed as follows:</motion.p>
+            <motion.ul variants={itemFadeIn} className="list-disc list-inside space-y-2 mb-6">
+              <li><strong>By Law or to Protect Rights:</strong> If we believe the release of information about you is necessary to respond to legal process, to investigate or remedy potential violations of our policies, or to protect the rights, property, or safety of others.</li>
+              <li><strong>Third-Party Service Providers:</strong> We may share your information with third parties that perform services for us or on our behalf, including payment processing, data analysis, email delivery, hosting services, customer service, and marketing assistance.</li>
+              <li><strong>Marketing Communications:</strong> With your consent, or with an opportunity for you to withdraw consent, we may share your information with third parties for marketing purposes, as permitted by law.</li>
+            </motion.ul>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">5. Intellectual Property</h3>
-            <p className="mb-6">
-              All content on the Site, including text, graphics, logos, images, and software, is the property of Venivici Health Club & Urban Spa or its content suppliers and is protected by intellectual property laws. You may not reproduce, distribute, modify, or create derivative works of any content without our express written permission.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">4. Security of Your Information</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse.</motion.p>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">6. User Conduct</h3>
-            <p className="mb-6">
-              You agree to use the Site and Services only for lawful purposes and in a way that does not infringe the rights of, restrict or inhibit anyone else's use and enjoyment of the Site. Prohibited behavior includes harassing or causing distress or inconvenience to any other user, transmitting obscene or offensive content, or disrupting the normal flow of dialogue within our Site.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">5. Your Privacy Rights</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">Depending on your location, you may have the following rights regarding your personal information: the right to access, correct, update, or request deletion of your personal information. You can exercise these rights by contacting us using the details below.</motion.p>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">7. Limitation of Liability</h3>
-            <p className="mb-6">
-              To the fullest extent permitted by applicable law, Venivici Health Club & Urban Spa shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (a) your access to or use of or inability to access or use the services; (b) any conduct or content of any third party on the services.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">6. Children's Privacy</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">Our Site is not intended for children under the age of 18. We do not knowingly collect personally identifiable information from children under 18. If you become aware that we have collected Personal Information from a child without verification of parental consent, we take steps to remove that information from our servers.</motion.p>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">8. Governing Law</h3>
-            <p className="mb-6">
-              These Terms shall be governed and construed in accordance with the laws of Nigeria, without regard to its conflict of law provisions.
-            </p>
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">7. Changes to This Privacy Policy</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">We may update this Privacy Policy from time to time in order to reflect, for example, changes to our practices or for other operational, legal, or regulatory reasons. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</motion.p>
 
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">9. Changes to Terms</h3>
-            <p className="mb-6">
-              We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
-            </p>
-
-            <h3 className="text-2xl font-serif text-veniviciDark mb-4 mt-8">10. Contact Information</h3>
-            <p className="mb-6">
-              For any questions regarding these Terms, please contact us at:
-            </p>
-            <ul className="list-disc list-inside space-y-2 mb-6">
+            <motion.h3 variants={itemFadeIn} className="text-2xl font-serif text-veniviciDark mb-4 mt-8">8. Contact Us</motion.h3>
+            <motion.p variants={itemFadeIn} className="mb-6">If you have questions or comments about this Privacy Policy, please contact us at:</motion.p>
+            <motion.ul variants={itemFadeIn} className="list-disc list-inside space-y-2 mb-6">
               <li><strong>Email:</strong> info@venivici.com</li>
               <li><strong>Phone:</strong> +234 809 999 0036</li>
-            </ul>
+              <li><strong>Address:</strong> Plot 6 Block 1, 69A Admiralty Way, Lekki Phase 1, Lagos, Nigeria</li>
+            </motion.ul>
 
-            <p className="mt-8 text-sm text-gray-500 italic">
-              <strong>Disclaimer:</strong> This is a general template. It is crucial to consult with a legal professional to draft comprehensive Terms & Conditions that are compliant with all applicable laws and regulations relevant to your business operations.
-            </p>
+            <motion.p variants={itemFadeIn} className="mt-8 text-sm text-gray-500 italic">
+              <strong>Disclaimer:</strong> This is a general template. It is crucial to consult with a legal professional to draft a Privacy Policy that is compliant with all applicable laws and regulations relevant to your business operations and location (e.g., NDPR in Nigeria, GDPR if serving EU citizens, CCPA if serving California residents).
+            </motion.p>
           </div>
         </motion.section>
       </motion.div>

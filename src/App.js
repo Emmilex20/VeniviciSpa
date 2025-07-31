@@ -5,15 +5,16 @@ import ScrollToTop from './components/ScrollToTop';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import CookieConsent from './components/CookieConsent'; 
+import CookieConsent from './components/CookieConsent';
 
-// Lazy load components (rest remains the same)
+// Lazy load components
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Gallery = lazy(() => import('./pages/Gallery'));
-const Booking = lazy(() => import('./pages/Booking'));
+const Booking = lazy(() => import('./pages/BookingPage'));
+const BookingConfirmation = lazy(() => import('./pages/BookingConfirmation')); // New lazy import for confirmation page
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
 const Testimonials = lazy(() => import('./pages/Testimonials'));
@@ -43,6 +44,7 @@ function App() {
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/booking" element={<Booking />} />
+              <Route path="/booking-confirmation" element={<BookingConfirmation />} /> {/* New route for confirmation */}
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPostDetail />} />
               <Route path="/testimonials" element={<Testimonials />} />

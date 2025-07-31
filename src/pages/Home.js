@@ -1,22 +1,45 @@
 // src/pages/Home.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
 import AnimatedButton from '../components/AnimatedButton';
-import ServiceCard from '../components/ServiceCard'; // This component still works for services
-import TestimonialCard from '../components/TestimonialCard';
+import ServiceCard from '../components/ServiceCard';
+// import TestimonialCard from '../components/TestimonialCard'; // TestimonialCard is used inside Testimonials component
 import CountUpAnimation from '../components/CountUpAnimation';
-import { treatments } from '../data/treatmentsData'; // <<< IMPORT FROM NEW FILE
-import { testimonials } from '../data/testimonialsData';
+import Testimonials from '../components/Testimonials'; // This is the component, not the data array
 
 // Make sure you have these images or replace with actual paths
 import heroBg from '../assets/images/hero-bg.jpg';
-import aboutSpaImg from '../assets/images/about-spa.jpeg'; // Assuming this exists
-import facilitiesImg1 from '../assets/images/facilities-1.jpeg'; // Assuming this exists
-import facilitiesImg2 from '../assets/images/facilities-2.jpg'; // Assuming this exists
+import aboutSpaImg from '../assets/images/about-spa.jpeg';
+import facilitiesImg1 from '../assets/images/facilities-1.jpeg';
+import facilitiesImg2 from '../assets/images/facilities-2.jpg';
 import philosophyImg from '../assets/images/philosophyImg.jpeg';
 import expertPlaceholder from '../assets/images/expertPlaceholder.jpg';
+
+// Import the specific images for the service/offer cards
+import idea1Img from '../assets/images/idea1.jpg'; // Uploaded image
+import idae2Img from '../assets/images/idae 2.jpg'; // Uploaded image
+import idae3Img from '../assets/images/idae 3.jpg'; // Uploaded image
+import idea4Img from '../assets/images/idea4.jpg'; // Uploaded image
+import idea5Img from '../assets/images/idea5.jpg'; // Uploaded image
+import bodyScrub from '../assets/images/full-body-scrub.jpg'; // Uploaded image
+import sport from '../assets/images/sport.webp'; // Uploaded image
+
+// --- Local Image Mapping for Services on Homepage ---
+// IMPORTANT: The keys here MUST EXACTLY MATCH the 'name' field of your services from the API.
+const serviceImageMap = {
+  "Post Surgery Rehabilitation": idae2Img, // Added placeholder image for this service
+  "Relaxation Massage": expertPlaceholder,
+  "Deep Tissue Massage": idae3Img,
+  "Aromatherapy Facial": idea5Img,
+  "Hot Stone Therapy": idea4Img,
+  "Manicure & Pedicure": idea1Img,
+  "Body Scrub & Wrap": bodyScrub,
+  "Sports Massage": sport, // Added placeholder image for this service
+  "Couple's Retreat": idae2Img, // Example for an 'offer' type (if you had this in your data)
+  "Detox Package": idea4Img,    // Example for another 'offer' type (if you had this in your data)
+  // Add more mappings as needed for your specific service names
+};
 
 
 // Framer Motion Variants for sections
@@ -52,7 +75,7 @@ const backdropVariants = {
   exit: { opacity: 0, transition: { duration: 0.2 } },
 };
 
-// Placeholder data for new sections
+// Placeholder data for new sections (experts are still static for this update)
 const experts = [
   { id: 1, name: 'Dr. Amina Yusuf', title: 'Lead Physiotherapist', bio: 'Specializing in sports injuries and post-operative rehabilitation.', img: expertPlaceholder },
   { id: 2, name: 'Grace Adekunle', title: 'Senior Massage Therapist', bio: 'Expert in deep tissue and aromatherapy, focusing on holistic relaxation.', img: expertPlaceholder },
@@ -61,17 +84,68 @@ const experts = [
 
 
 const Home = () => {
-  // Filter treatments to get featured services and homepage offers
-  const featuredServices = treatments.filter(t => t.type === 'service').slice(0, 3);
-  const homepageOffers = treatments.filter(t => t.type === 'offer').slice(0, 3);
-  const featuredTestimonials = testimonials.slice(0, 3);
+  // State for fetched services and offers
+  const [allServices, setAllServices] = useState([]); // Stores all fetched services/offers
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [servicesError, setServicesError] = useState(null);
+
+  // --- REVISED FILTERING LOGIC ---
+  // Since there's no 'type' field in the fetched data, we'll
+  // display the first few services as 'featured' and the next few as 'offers'.
+  // For a more robust solution, add a 'type' field (e.g., 'service', 'offer')
+  // to your backend service data.
+  const featuredServices = allServices.slice(0, 3); // Take the first 3 services
+  const homepageOffers = allServices.slice(3, 6); // Take the next 3 services as "offers" (e.g., index 3, 4, 5)
+
+  // REMOVED THIS LINE: const featuredTestimonials = Testimonials.slice(0, 3);
+  // Testimonials component handles its own data, no need to slice it here.
 
   // State for the modal
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch all services and offers when the component mounts
+  useEffect(() => {
+    console.log("Component mounted, starting fetch...");
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/services'); // Fetch from your backend
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Fetched raw service data:", data); // THIS IS IMPORTANT! Check this output.
+        setAllServices(data); // Store all fetched data
+      } catch (err) {
+        setServicesError(err.message);
+        console.error("Failed to fetch services:", err);
+      } finally {
+        setLoadingServices(false);
+        console.log("Loading state set to false.");
+      }
+    };
+
+    fetchServices();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // These will re-run on every render, showing current filtered arrays
+  console.log("Current allServices state (after fetch):", allServices);
+  console.log("Featured services (after slice):", featuredServices);
+  console.log("Homepage offers (after slice):", homepageOffers);
+
+  // handleLearnMore function now receives the full service object as fetched
   const handleLearnMore = (service) => {
-    setSelectedService(service);
+    console.log("Service selected for modal:", service); // Check this when clicking "Learn More"
+    setSelectedService({
+      id: service._id,
+      title: service.name,
+      description: service.description,
+      price: service.price.toLocaleString(), // Format price for display
+      duration: service.duration, // Assuming duration exists in your fetched service data
+      inclusions: service.inclusions || [], // Assuming inclusions is an array or undefined
+      imageUrl: serviceImageMap[service.name] || '', // Get image from map
+      type: service.type, // This will be undefined, but harmless for modal display
+    });
     setIsModalOpen(true);
   };
 
@@ -169,7 +243,7 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* --- Our Philosophy Section (New) --- */}
+        {/* --- Our Philosophy Section --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
           variants={sectionVariants}
@@ -269,7 +343,7 @@ const Home = () => {
                 Step into a tranquil oasis designed to melt away stress and inspire deep relaxation.
               </p>
             </motion.div>
-             <motion.div
+            <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
@@ -293,7 +367,7 @@ const Home = () => {
                 Clients consistently praise our effective treatments and the profound sense of well-being they achieve.
               </p>
             </motion.div>
-             <motion.div
+            <motion.div
               className="bg-white p-6 sm:p-8 rounded-lg shadow-xl text-center"
               variants={itemVariants}
             >
@@ -383,7 +457,119 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* --- Meet Our Experts Section (New) --- */}
+        {/* --- Featured Services Section --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Our Signature <span className="text-veniviciGreen">Treatments & Services</span>
+          </h2>
+          {loadingServices ? (
+            <p className="text-center text-veniviciDark text-lg">Loading services...</p>
+          ) : servicesError ? (
+            <p className="text-center text-red-600 text-lg">Error loading services: {servicesError}</p>
+          ) : featuredServices.length === 0 ? ( // Added check for empty array
+            <p className="text-center text-gray-700 text-lg">No featured services available at the moment.</p>
+          ) : (
+            <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredServices.map((service, index) => (
+                <ServiceCard
+                  key={service._id} // Use MongoDB's _id
+                  service={{
+                    id: service._id,
+                    title: service.name,
+                    description: service.description,
+                    price: service.price.toLocaleString(), // Format price for display
+                    duration: service.duration,
+                    icon: service.iconClass,
+                    imageUrl: serviceImageMap[service.name], // Get image from map
+                    inclusions: service.inclusions,
+                    type: service.type, // Will be undefined but harmless
+                  }}
+                  index={index}
+                  onLearnMore={handleLearnMore} // Pass the handleLearnMore function
+                  variants={itemVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.1 }}
+                />
+              ))}
+            </div>
+          )}
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <AnimatedButton to="/services">View All Services</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
+        {/* --- Special Offers & Packages Section --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
+          </h2>
+          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
+          </p>
+          {loadingServices ? (
+            <p className="text-center text-veniviciDark text-lg">Loading offers...</p>
+          ) : servicesError ? (
+            <p className="text-center text-red-600 text-lg">Error loading offers: {servicesError}</p>
+          ) : homepageOffers.length === 0 ? ( // Added check for empty array
+            <p className="text-center text-gray-700 text-lg">No exclusive offers available at the moment.</p>
+          ) : (
+            <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {homepageOffers.map((offer, index) => (
+                <ServiceCard // Re-using ServiceCard for consistency
+                  key={offer._id}
+                  service={{
+                    id: offer._id,
+                    title: offer.name,
+                    description: offer.description,
+                    price: offer.price.toLocaleString(), // Format price for display
+                    duration: offer.duration, // If offers have duration
+                    icon: offer.iconClass,
+                    imageUrl: serviceImageMap[offer.name],
+                    inclusions: offer.inclusions,
+                    type: offer.type, // Will be undefined but harmless
+                  }}
+                  index={index}
+                  onLearnMore={handleLearnMore}
+                  variants={itemVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.1 }}
+                />
+              ))}
+            </div>
+          )}
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            {/* Consider linking to a dedicated offers page, or filter on booking page */}
+            <AnimatedButton to="/services" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
+        {/* --- Meet Our Experts Section --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
           variants={sectionVariants}
@@ -403,12 +589,12 @@ const Home = () => {
                 key={expert.id}
                 className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center"
                 variants={itemVariants}
-                initial="hidden" // Ensure initial state is applied
-                whileInView="visible" // Ensure it tries to become visible
-                viewport={{ once: true, amount: 0.1 }} 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
               >
                 <img
-                  src={expertPlaceholder} // Using placeholder for now
+                  src={expert.img} // Using placeholder for now, you can add expert-specific images later
                   alt={expert.name}
                   className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-veniviciGreen shadow-md"
                 />
@@ -429,123 +615,6 @@ const Home = () => {
           </motion.div>
         </motion.section>
 
-        {/* --- Featured Services Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Our Signature <span className="text-veniviciGreen">Treatments & Services</span>
-          </h2>
-          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredServices.map((service, index) => (
-              // Pass the handleLearnMore function as onLearnMore prop
-              <ServiceCard key={service.id} service={service} index={index} onLearnMore={handleLearnMore} variants={itemVariants} 
-              initial="hidden" // Pass initial and whileInView to ServiceCard
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-              />
-            ))}
-          </div>
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <AnimatedButton to="/services">View All Services</AnimatedButton>
-          </motion.div>
-        </motion.section>
-
-        {/* --- Special Offers & Packages Section (New) --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
-          </h2>
-          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
-            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
-          </p>
-          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {homepageOffers.map((offer) => (
-              <motion.div
-                key={offer.id}
-                className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center border-t-4 border-veniviciGold hover:shadow-2xl transition-shadow duration-300"
-                variants={itemVariants}
-                initial="hidden" // Ensure initial state is applied
-                whileInView="visible" // Ensure it tries to become visible
-                viewport={{ once: true, amount: 0.1 }}
-              >
-                {/* Display image for offers on homepage as well */}
-                {offer.imageUrl && (
-                  <img src={offer.imageUrl} alt={offer.title} className="w-full h-48 object-cover rounded-md mb-4" />
-                )}
-                <div className="text-veniviciGreen text-5xl mb-4">
-                  <i className={offer.icon}></i>
-                </div>
-                <h3 className="text-2xl font-semibold text-veniviciDark mb-2">{offer.title}</h3>
-                <p className="text-gray-700 text-base leading-relaxed mb-4 flex-grow">{offer.description}</p>
-                <div className="text-veniviciGold text-2xl font-bold mb-4">{offer.price}</div>
-                <Link to="/booking" className="inline-block bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold">
-                  Book Now
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <AnimatedButton to="/offers" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
-          </motion.div>
-        </motion.section>
-
-        {/* --- Testimonials Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 container mx-auto"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            What Our Clients <span className="text-veniviciGreen">Say</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredTestimonials.map((testimonial, index) => (
-              <TestimonialCard
-                key={testimonial.id}
-                testimonial={testimonial}
-                index={index}
-                initial="hidden" // Ensure initial state is applied
-                whileInView="visible" // Ensure it tries to become visible
-                viewport={{ once: true, amount: 0.1 }}
-              />
-            ))}
-          </div>
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <AnimatedButton to="/testimonials" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">Read All Testimonials</AnimatedButton>
-          </motion.div>
-        </motion.section>
-
         {/* --- Quick Facts / Achievements Section (Now with Count-Up Animation!) --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-r from-veniviciGreen to-[#5cb85c] text-white text-center"
@@ -559,9 +628,9 @@ const Home = () => {
           </h2>
           <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-            initial="hidden" // Ensure initial state is applied
-            whileInView="visible" // Ensure it tries to become visible
-            viewport={{ once: true, amount: 0.1 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={5} suffix="+" />
@@ -569,9 +638,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Years of Experience</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-            initial="hidden" // Ensure initial state is applied
-            whileInView="visible" // Ensure it tries to become visible
-            viewport={{ once: true, amount: 0.1 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={1000} suffix="+" />
@@ -579,9 +648,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Happy Clients</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-            initial="hidden" // Ensure initial state is applied
-            whileInView="visible" // Ensure it tries to become visible
-            viewport={{ once: true, amount: 0.1 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={15} suffix="+" />
@@ -589,9 +658,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Specialized Services</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-            initial="hidden" // Ensure initial state is applied
-            whileInView="visible" // Ensure it tries to become visible
-            viewport={{ once: true, amount: 0.1 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={98} suffix="%" />
@@ -601,7 +670,7 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* --- Integrated Contact & Location Snippet (New) --- */}
+        {/* --- Integrated Contact & Location Snippet --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
           variants={sectionVariants}
@@ -647,7 +716,7 @@ const Home = () => {
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.303977926838!2d3.473539874836696!3d6.479532593504381!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103bf6f345862d61%3A0x8f78a78c1a700688!2s10%20Freedom%20Way%2C%20Lekki%20Phase%201%2C%20Lagos!5e0!3m2!1sen!2sng!4v1700000000000!5m2!1sen!2sng" // Example Google Maps embed URL
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d253733.28314282544!2d3.1867754!3d6.4476067!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103bf5300795e6e7%3A0xd1d3aaf540997ea3!2sVenivici%20Health%20Club%20and%20Urban%20Spa!5e0!3m2!1sen!2sng!4v1753809835619!5m2!1sen!2sng"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -660,6 +729,9 @@ const Home = () => {
             </motion.div>
           </div>
         </motion.section>
+
+         {/* Testimonials Section - ADDED BACK */}
+        <Testimonials />
 
 
         {/* --- Final Call to Action Section --- */}
@@ -690,24 +762,24 @@ const Home = () => {
       <AnimatePresence>
         {isModalOpen && selectedService && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70" // Added backdrop color
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            onClick={closeModal} // Close modal when clicking on backdrop
+            onClick={closeModal}
           >
             <motion.div
               className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative p-6 sm:p-8"
               variants={modalVariants}
-              onClick={(e) => e.stopPropagation()} // Prevent modal from closing when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={closeModal}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl leading-none"
                 aria-label="Close modal"
               >
-                &times;
+                ×
               </button>
               <h3 className="text-3xl font-serif text-veniviciDark mb-4 border-b pb-2">
                 {selectedService.title}
@@ -727,6 +799,7 @@ const Home = () => {
               {selectedService.inclusions && selectedService.inclusions.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-lg font-semibold text-veniviciDark mb-2">
+                    {/* Since 'type' is undefined, this will default to 'Package Includes:' */}
                     {selectedService.type === 'service' ? 'Benefits:' : 'Package Includes:'}
                   </h4>
                   <ul className="list-disc list-inside text-gray-600 space-y-1">
@@ -737,15 +810,15 @@ const Home = () => {
                 </div>
               )}
 
-              {selectedService.duration && selectedService.type === 'service' && (
-                  <p className="text-lg text-gray-600 mb-2">
-                    <span className="font-semibold">Duration:</span> {selectedService.duration}
-                  </p>
+              {selectedService.duration && (
+                <p className="text-lg text-gray-600 mb-2">
+                  <span className="font-semibold">Duration:</span> {selectedService.duration}
+                </p>
               )}
 
               {selectedService.price && (
                 <p className="text-lg font-bold text-veniviciGreen mb-4">
-                  Price: {selectedService.price}
+                  Price: N{selectedService.price}
                 </p>
               )}
               <div className="mt-6 text-center">

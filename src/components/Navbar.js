@@ -80,7 +80,6 @@ const Navbar = () => {
             <Link to="/" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Home</Link>
             <Link to="/about" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">About Us</Link>
             <Link to="/services" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Services</Link>
-            <Link to="/offers" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Offers</Link>
             <Link to="/gallery" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Gallery</Link>
             <Link to="/blog" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Blog</Link>
             <Link to="/contact" className="text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 text-lg">Contact</Link>
@@ -139,9 +138,6 @@ const Navbar = () => {
               </motion.div>
               <motion.div variants={menuItemVariants}>
                 <Link onClick={() => setIsOpen(false)} to="/services" className="block text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 py-3 text-lg border-b border-gray-100">Services</Link>
-              </motion.div>
-              <motion.div variants={menuItemVariants}>
-                <Link onClick={() => setIsOpen(false)} to="/offers" className="block text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 py-3 text-lg border-b border-gray-100">Offers</Link>
               </motion.div>
               <motion.div variants={menuItemVariants}>
                 <Link onClick={() => setIsOpen(false)} to="/gallery" className="block text-veniviciDark hover:text-veniviciGreen font-medium transition duration-300 py-3 text-lg border-b border-gray-100">Gallery</Link>
