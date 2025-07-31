@@ -31,7 +31,11 @@ const ServiceCard = ({ service, index, variants, onLearnMore }) => {
         </div>
         <div className="text-right mt-auto"> {/* Use mt-auto to push button to bottom */}
           <button
-            onClick={() => onLearnMore(service)} // <--- This triggers the modal
+            onClick={() => {
+              console.log("--- Learn More button clicked inside ServiceCard ---");
+              console.log("Service object passed to onLearnMore:", service); // <--- ADD THIS LINE
+              onLearnMore(service);
+            }}
             className="text-veniviciGreen font-semibold hover:underline flex items-center justify-end group-hover:translate-x-1 transition-transform duration-200"
           >
             Learn More <i className="fas fa-arrow-right ml-2 text-sm"></i>

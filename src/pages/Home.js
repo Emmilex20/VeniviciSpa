@@ -1,12 +1,16 @@
 // src/pages/Home.js
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import AnimatedButton from '../components/AnimatedButton';
 import ServiceCard from '../components/ServiceCard';
-// import TestimonialCard from '../components/TestimonialCard'; // TestimonialCard is used inside Testimonials component
+import TestimonialCard from '../components/TestimonialCard';
+import { teamMembers } from '../data/teamData';
+import { testimonials } from '../data/testimonialsData'; // Correct import for testimonials
 import CountUpAnimation from '../components/CountUpAnimation';
-import Testimonials from '../components/Testimonials'; // This is the component, not the data array
+import Testimonials from '../components/Testimonials';
 
 // Make sure you have these images or replace with actual paths
 import heroBg from '../assets/images/hero-bg.jpg';
@@ -17,29 +21,63 @@ import philosophyImg from '../assets/images/philosophyImg.jpeg';
 import expertPlaceholder from '../assets/images/expertPlaceholder.jpg';
 
 // Import the specific images for the service/offer cards
-import idea1Img from '../assets/images/idea1.jpg'; // Uploaded image
-import idae2Img from '../assets/images/idae 2.jpg'; // Uploaded image
-import idae3Img from '../assets/images/idae 3.jpg'; // Uploaded image
-import idea4Img from '../assets/images/idea4.jpg'; // Uploaded image
-import idea5Img from '../assets/images/idea5.jpg'; // Uploaded image
-import bodyScrub from '../assets/images/full-body-scrub.jpg'; // Uploaded image
-import sport from '../assets/images/sport.webp'; // Uploaded image
+import idea1Img from '../assets/images/idea1.jpg';
+import idae2Img from '../assets/images/idae 2.jpg';
+import idae3Img from '../assets/images/idae 3.jpg';
+import idea4Img from '../assets/images/idea4.jpg';
+import idea5Img from '../assets/images/idea5.jpg';
+import bodyScrub from '../assets/images/full-body-scrub.jpg';
+import sport from '../assets/images/sport.webp';
 
 // --- Local Image Mapping for Services on Homepage ---
 // IMPORTANT: The keys here MUST EXACTLY MATCH the 'name' field of your services from the API.
 const serviceImageMap = {
-  "Post Surgery Rehabilitation": idae2Img, // Added placeholder image for this service
+  "Post Surgery Rehabilitation": idae2Img,
   "Relaxation Massage": expertPlaceholder,
   "Deep Tissue Massage": idae3Img,
   "Aromatherapy Facial": idea5Img,
   "Hot Stone Therapy": idea4Img,
   "Manicure & Pedicure": idea1Img,
   "Body Scrub & Wrap": bodyScrub,
-  "Sports Massage": sport, // Added placeholder image for this service
-  "Couple's Retreat": idae2Img, // Example for an 'offer' type (if you had this in your data)
-  "Detox Package": idea4Img,    // Example for another 'offer' type (if you had this in your data)
+  "Sports Massage": sport,
+  "Couple's Retreat": idae2Img,
+  "Detox Package": idea4Img,
   // Add more mappings as needed for your specific service names
 };
+
+
+// --- NEW: Define how you want to map backend service names to display icons/text ---
+// IMPORTANT: The keys here MUST EXACTLY MATCH the 'name' field of your services from the API
+// These are examples based on your provided list. Adjust the prices and types as needed.
+const offerDisplayDetailsMap = {
+  // Example for the 4th service (index 3 from allServices)
+  "Aromatherapy Facial": { // Assuming this service name might fall into homepageOffers
+    iconType: 'leaf', // Use a leaf icon
+    displayPrice: 'Starting from ₦20,000', // Example price
+  },
+  // Example for the 5th service (index 4 from allServices)
+  "Hot Stone Therapy": { // Assuming this service name might fall into homepageOffers
+    iconType: 'leaf', // Use a leaf icon
+    displayPrice: 'Starting from ₦35,000', // Example price
+  },
+  // Example for the 6th service (index 5 from allServices)
+  "Manicure & Pedicure": { // Assuming this service name might fall into homepageOffers
+    iconType: 'percent', // Use a percentage icon for a discount look
+    displayPrice: '15% Off Manicure & Pedicure', // Example discount text
+  },
+  // You can add more mappings here if you change your `homepageOffers` slicing logic
+  // to include other services or if these specific services might appear later.
+  "Body Scrub & Wrap": {
+      iconType: 'leaf',
+      displayPrice: 'Starting from ₦40,000',
+  },
+  "Sports Massage": {
+      iconType: 'percent',
+      displayPrice: '20% Off Sports Massage',
+  },
+  // ... and so on for other services you might feature as "offers"
+};
+
 
 
 // Framer Motion Variants for sections
@@ -76,11 +114,11 @@ const backdropVariants = {
 };
 
 // Placeholder data for new sections (experts are still static for this update)
-const experts = [
-  { id: 1, name: 'Dr. Amina Yusuf', title: 'Lead Physiotherapist', bio: 'Specializing in sports injuries and post-operative rehabilitation.', img: expertPlaceholder },
-  { id: 2, name: 'Grace Adekunle', title: 'Senior Massage Therapist', bio: 'Expert in deep tissue and aromatherapy, focusing on holistic relaxation.', img: expertPlaceholder },
-  { id: 3, name: 'Chike Obi', title: 'Wellness Consultant', bio: 'Guiding clients through personalized wellness plans and nutritional advice.', img: expertPlaceholder },
-];
+//const experts = [
+ // { id: 1, name: 'Dr. Amina Yusuf', title: 'Lead Physiotherapist', bio: 'Specializing in sports injuries and post-operative rehabilitation.', img: expertPlaceholder },
+//  { id: 2, name: 'Grace Adekunle', title: 'Senior Massage Therapist', bio: 'Expert in deep tissue and aromatherapy, focusing on holistic relaxation.', img: expertPlaceholder },
+//  { id: 3, name: 'Chike Obi', title: 'Wellness Consultant', bio: 'Guiding clients through personalized wellness plans and nutritional advice.', img: expertPlaceholder },
+//];
 
 
 const Home = () => {
@@ -90,15 +128,9 @@ const Home = () => {
   const [servicesError, setServicesError] = useState(null);
 
   // --- REVISED FILTERING LOGIC ---
-  // Since there's no 'type' field in the fetched data, we'll
-  // display the first few services as 'featured' and the next few as 'offers'.
-  // For a more robust solution, add a 'type' field (e.g., 'service', 'offer')
-  // to your backend service data.
-  const featuredServices = allServices.slice(0, 3); // Take the first 3 services
-  const homepageOffers = allServices.slice(3, 6); // Take the next 3 services as "offers" (e.g., index 3, 4, 5)
-
-  // REMOVED THIS LINE: const featuredTestimonials = Testimonials.slice(0, 3);
-  // Testimonials component handles its own data, no need to slice it here.
+  // These will now correctly reflect the data WITH image URLs
+  const featuredServices = allServices.slice(0, 3);
+  const homepageOffers = allServices.slice(3, 6);
 
   // State for the modal
   const [selectedService, setSelectedService] = useState(null);
@@ -109,19 +141,30 @@ const Home = () => {
     console.log("Component mounted, starting fetch...");
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/services'); // Fetch from your backend
+        const response = await fetch('http://localhost:5000/api/services');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Fetched raw service data:", data); // THIS IS IMPORTANT! Check this output.
-        setAllServices(data); // Store all fetched data
+
+        // --- Data Hydration (as explained in previous answer) ---
+        const hydratedData = data.map(service => {
+          const displayDetails = offerDisplayDetailsMap[service.name] || {}; // Get custom details if available
+          return {
+            ...service,
+            imageUrl: serviceImageMap[service.name] || '',
+            iconType: displayDetails.iconType || 'default', // Add iconType
+            displayPriceText: displayDetails.displayPrice || `₦${service.price ? service.price.toLocaleString() : 'N/A'}`, // Add custom price text or default
+          };
+        });
+
+        setAllServices(hydratedData);
+
       } catch (err) {
         setServicesError(err.message);
         console.error("Failed to fetch services:", err);
       } finally {
         setLoadingServices(false);
-        console.log("Loading state set to false.");
       }
     };
 
@@ -143,7 +186,7 @@ const Home = () => {
       price: service.price.toLocaleString(), // Format price for display
       duration: service.duration, // Assuming duration exists in your fetched service data
       inclusions: service.inclusions || [], // Assuming inclusions is an array or undefined
-      imageUrl: serviceImageMap[service.name] || '', // Get image from map
+      imageUrl: service.imageUrl, // Use the imageUrl that was already hydrated!
       type: service.type, // This will be undefined, but harmless for modal display
     });
     setIsModalOpen(true);
@@ -459,11 +502,11 @@ const Home = () => {
 
         {/* --- Meet Our Experts Section (New) --- */}
         <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+        className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Meet Our <span className="text-veniviciGreen">Wellness Experts</span>
@@ -472,7 +515,7 @@ const Home = () => {
             Our team of highly skilled and compassionate professionals is dedicated to guiding you on your wellness journey.
           </p>
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {experts.map((expert) => (
+            {teamMembers.map((expert) => (
               <motion.div
                 key={expert.id}
                 className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center"
@@ -482,7 +525,7 @@ const Home = () => {
                 viewport={{ once: true, amount: 0.1 }} 
               >
                 <img
-                  src={expertPlaceholder} // Using placeholder for now
+                  src={expert.image} // Using placeholder for now
                   alt={expert.name}
                   className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-veniviciGreen shadow-md"
                 />
@@ -536,90 +579,85 @@ const Home = () => {
         </motion.section>
 
         {/* --- Special Offers & Packages Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
-          </h2>
-          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
-            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
-          </p>
-          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {homepageOffers.map((offer) => (
-              <motion.div
-                key={offer.id}
-                className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center border-t-4 border-veniviciGold hover:shadow-2xl transition-shadow duration-300"
-                variants={itemVariants}
-                initial="hidden" // Ensure initial state is applied
-                whileInView="visible" // Ensure it tries to become visible
-                viewport={{ once: true, amount: 0.1 }}
-              >
-                {/* Display image for offers on homepage as well */}
-                {offer.imageUrl && (
-                  <img src={offer.imageUrl} alt={offer.title} className="w-full h-48 object-cover rounded-md mb-4" />
-                )}
-                <div className="text-veniviciGreen text-5xl mb-4">
-                  <i className={offer.icon}></i>
-                </div>
-                <h3 className="text-2xl font-semibold text-veniviciDark mb-2">{offer.title}</h3>
-                <p className="text-gray-700 text-base leading-relaxed mb-4 flex-grow">{offer.description}</p>
-                <div className="text-veniviciGold text-2xl font-bold mb-4">{offer.price}</div>
-                <Link to="/booking" className="inline-block bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold">
-                  Book Now
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            {/* Consider linking to a dedicated offers page, or filter on booking page */}
-            <AnimatedButton to="/services" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
-          </motion.div>
-        </motion.section>
+<motion.section
+  className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+  variants={sectionVariants}
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true, amount: 0.3 }}
+>
+  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+    Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
+  </h2>
+  <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+    Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
+  </p>
+  <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {homepageOffers.map((offer) => (
+      <motion.div
+        key={offer._id} // Use offer._id as key from MongoDB
+        className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center border-t-4 border-veniviciGold hover:shadow-2xl transition-shadow duration-300"
+        variants={itemVariants}
+        initial="hidden" // Ensure initial state is applied
+        whileInView="visible" // Ensure it tries to become visible
+        viewport={{ once: true, amount: 0.1 }}
+      >
+        {/* Display image for offers on homepage as well */}
+        {offer.imageUrl && (
+          <img
+            src={offer.imageUrl}
+            alt={offer.title || offer.name} // Use offer.name as fallback for alt text
+            className="w-full h-48 object-cover rounded-md mb-4"
+          />
+        )}
 
-        {/* --- Meet Our Experts Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+        {/* --- START OF UPDATED ICON LOGIC --- */}
+        <div className="flex justify-center mb-4"> {/* Center the icon */}
+          {offer.iconType === 'leaf' && (
+            <i className="fas fa-leaf text-veniviciGreen text-3xl"></i> 
+          )}
+          {offer.iconType === 'percent' && (
+            <i className="fas fa-percent text-veniviciGreen text-3xl"></i> 
+          )}
+          {/* Default icon if iconType is not 'leaf' or 'percent' or is undefined */}
+          {(!offer.iconType || offer.iconType === 'default') && (
+            <i className="fas fa-spa text-veniviciGreen text-3xl"></i> 
+          )}
+        </div>
+        {/* --- END OF UPDATED ICON LOGIC --- */}
+
+        <h3 className="text-2xl font-semibold text-veniviciDark mb-2">
+          {offer.title || offer.name}
+        </h3> {/* Use offer.name as fallback for title */}
+        <p className="text-gray-700 text-base leading-relaxed mb-4 flex-grow">
+          {offer.description}
+        </p>
+
+        {/* --- START OF UPDATED PRICE LOGIC --- */}
+        <div className="text-veniviciGold text-2xl font-bold mb-4">
+          {offer.displayPriceText} {/* Use the pre-formatted text from your hydrated data */}
+        </div>
+        {/* --- END OF UPDATED PRICE LOGIC --- */}
+
+        <Link
+          to="/booking"
+          className="inline-block bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Meet Our <span className="text-veniviciGreen">Wellness Experts</span>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredTestimonials.map((testimonial, index) => (
-              <TestimonialCard
-                key={testimonial.id}
-                testimonial={testimonial}
-                index={index}
-                initial="hidden" // Ensure initial state is applied
-                whileInView="visible" // Ensure it tries to become visible
-                viewport={{ once: true, amount: 0.1 }}
-              />
-            ))}
-          </div>
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <AnimatedButton to="/about">View All Team Members</AnimatedButton>
-          </motion.div>
-        </motion.section>
+          Book Now
+        </Link>
+      </motion.div>
+    ))}
+  </div>
+  <motion.div
+    className="text-center mt-12"
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.7, delay: 0.4 }}
+  >
+    <AnimatedButton to="/services" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
+  </motion.div>
+</motion.section>
 
         {/* --- Quick Facts / Achievements Section (Now with Count-Up Animation!) --- */}
         <motion.section

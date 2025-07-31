@@ -27,6 +27,8 @@ const ServiceDetailModal = ({ service, onClose }) => {
 
   if (!service) return null; // Don't render if no service is provided
 
+  console.log("Service data received by ServiceDetailModal:", service);
+
   return (
     <AnimatePresence>
       <motion.div

@@ -172,19 +172,23 @@ const Services = () => {
     const servicesToShow = allServices;
 
     // Handler to open the ServiceDetailModal
-    const handleOpenModal = (service) => {
-        // Prepare the service object for the modal to ensure all necessary props are available
+    const handleOpenModal = (serviceFromCard) => { // Renamed 'service' to 'serviceFromCard' for clarity
+        console.log("Service selected for modal (from ServiceCard):", serviceFromCard); // This log now shows the exact object being passed
+
+        // The 'serviceFromCard' object already has the 'id', 'title', 'price' (formatted),
+        // and 'imageUrl' in the format that ServiceDetailModal expects,
+        // because ServiceCard already transformed the original API data.
         setSelectedService({
-            id: service._id, // Use _id from MongoDB
-            title: service.name,
-            description: service.description,
-            price: service.price ? `₦${service.price.toLocaleString()}` : 'N/A', // Format price, handle if missing
-            duration: service.duration,
-            icon: service.iconClass,
-            imageUrl: serviceImageMap[service.name] || '', // Get image from map, or empty string if not found
-            inclusions: service.inclusions || [], // Ensure inclusions is an array, or empty if not present
-            type: service.type, // This will be undefined based on current API data, but harmless for modal display
-            benefits: service.benefits || [], // Ensure benefits is an array
+            id: serviceFromCard.id, // Use the 'id' property already present on serviceFromCard
+            title: serviceFromCard.title, // Use the 'title' property already present on serviceFromCard
+            description: serviceFromCard.description,
+            price: serviceFromCard.price, // Use the 'price' already formatted by ServiceCard
+            duration: serviceFromCard.duration,
+            icon: serviceFromCard.icon,
+            imageUrl: serviceFromCard.imageUrl, // Use the 'imageUrl' property already present on serviceFromCard
+            inclusions: serviceFromCard.inclusions || [], // Ensure inclusions is an array
+            type: serviceFromCard.type,
+            benefits: serviceFromCard.benefits || [], // Ensure benefits is an array
         });
         setIsModalOpen(true);
         document.body.style.overflow = 'hidden'; // Prevent scrolling background
@@ -277,10 +281,19 @@ const Services = () => {
                                         id: service._id,
                                         title: service.name,
                                         description: service.description,
-                                        price: service.price ? `₦${service.price.toLocaleString()}` : 'N/A', // Formatted for display
+                                        // --- UPDATED PRICE FORMATTING FOR CARD DISPLAY ---
+                                        price: service.price
+                                            ? service.price.toLocaleString('en-NG', { // Use 'en-NG' for Nigeria locale
+                                                  style: 'currency', // Format as currency
+                                                  currency: 'NGN', // Specify Naira currency code
+                                                  minimumFractionDigits: 0, // No decimal places
+                                                  maximumFractionDigits: 0, // No decimal places
+                                              })
+                                            : 'N/A', // Formatted for display
+                                        // --- END UPDATED PRICE FORMATTING ---
                                         duration: service.duration,
                                         icon: service.iconClass,
-                                        imageUrl: serviceImageMap[service.name] || '',
+                                        imageUrl: serviceImageMap[service.name] || '', // This is where imageUrl is set for the card
                                         inclusions: service.inclusions || [],
                                         type: service.type,
                                     }}
@@ -395,7 +408,16 @@ const Services = () => {
                                         id: service._id,
                                         title: service.name,
                                         description: service.description,
-                                        price: service.price ? `₦${service.price.toLocaleString()}` : 'N/A', // Formatted for display
+                                        // --- UPDATED PRICE FORMATTING FOR DETAIL SECTION ---
+                                        price: service.price
+                                            ? service.price.toLocaleString('en-NG', {
+                                                  style: 'currency',
+                                                  currency: 'NGN',
+                                                  minimumFractionDigits: 0,
+                                                  maximumFractionDigits: 0,
+                                              })
+                                            : 'N/A', // Formatted for display
+                                        // --- END UPDATED PRICE FORMATTING ---
                                         duration: service.duration,
                                         icon: service.iconClass,
                                         imageUrl: serviceImageMap[service.name] || '',
