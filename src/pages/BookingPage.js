@@ -1,5 +1,5 @@
 // src/pages/BookingPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback  } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -13,7 +13,7 @@ import featureImg2 from '../assets/images/featureImg2.jpg';
 import testimonialBg from '../assets/images/testimonialBg.jpeg';
 
 // Define your backend API base URL from .env.local
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://venivicispa.onrender.com/api';
 
 // --- Helper for Calendar (Simplified) ---
 const getDaysInMonth = (year, month) => {
@@ -108,6 +108,7 @@ const BookingPage = () => {
     const [serviceFetchError, setServiceFetchError] = useState(null);
     const [fetchedServices, setFetchedServices] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [alert, setAlert] = useState(null);
 
     const [openFaq, setOpenFaq] = useState(null);
 
@@ -212,53 +213,68 @@ const BookingPage = () => {
     };
 
     // Paystack success callback
-    const onPaystackSuccess = (response) => {
-        console.log('STEP 1: Paystack Success Callback Fired!');
-        console.log('STEP 2: Paystack raw response object:', response);
-        console.log('STEP 3: Frontend received Paystack reference for backend verification:', response.reference);
+    const onPaystackSuccess = useCallback((response) => {
+    console.log('STEP 1: Paystack Success Callback Fired!');
+    console.log('STEP 2: Paystack raw response object:', response);
+    console.log('STEP 3: Frontend received Paystack reference for backend verification:', response.reference);
 
-        // Make sure your API_BASE_URL is correct and the endpoint path matches your backend.
-        // Assuming backend endpoint is /api/bookings/verify-payment
-        axios.post(`${API_BASE_URL}/bookings/verify-payment`, { reference: response.reference })
-            .then(res => {
-                console.log('STEP 4: Backend verification call successful!');
-                console.log('STEP 5: Backend verification result:', res.data);
+    setIsSubmitting(true); // Indicate that verification is in progress
+    axios.post(`${API_BASE_URL}/bookings/verify-payment`, { reference: response.reference })
+        .then(res => {
+            console.log('STEP 4: Backend verification call successful!');
+            console.log('STEP 5: Backend verification result:', res.data);
 
-                // Check the status returned by your backend verification
-                if (res.data.status === 'success') {
-                    // Ensure res.data.bookingId exists from your backend response
-                    const bookingIdFromBackend = res.data.bookingId;
+            if (res.data.status === 'success') {
+                const bookingIdFromBackend = res.data.bookingId;
 
-                    if (bookingIdFromBackend) {
-                        setFormSubmitted(true);
+                if (bookingIdFromBackend) {
+                    setFormSubmitted(true);
+                    setSubmitError(null); // Clear any previous submission errors
+                    setAlert({ message: 'Payment successfully verified and booking confirmed!', type: 'success' });
+                    // Navigate after a short delay to allow user to see the success message
+                    setTimeout(() => {
                         navigate(`/booking-confirmation?status=success&bookingId=${bookingIdFromBackend}&reference=${response.reference}`);
-                    } else {
-                        console.error('Backend verification success but no bookingId returned.');
-                        navigate(`/booking-confirmation?status=failed&message=Booking ID missing from verification.`);
-                    }
+                    }, 3000); // 3-second delay
                 } else {
-                    console.warn('Backend verification returned non-success status:', res.data.message);
-                    navigate(`/booking-confirmation?status=failed&message=${res.data.message || 'Payment not successfully verified.'}`);
+                    console.error('Backend verification success but no bookingId returned.');
+                    const msg = 'Payment verified, but booking ID missing. Please contact support.';
+                    setSubmitError(msg);
+                    setAlert({ message: msg, type: 'error' });
+                    // No automatic navigation for this specific error, let user see it.
                 }
-            })
-            .catch(err => {
-                console.error('Payment verification failed on backend:', err.response ? err.response.data : err.message);
-                // Navigate to a failed status page, passing the error message if available
-                const errorMessage = err.response && err.response.data && err.response.data.message
-                    ? err.response.data.message
-                    : 'Payment verification failed due to network or server error.';
-                navigate(`/booking-confirmation?status=failed&message=${errorMessage}`);
-            })
-            .finally(() => {
-                setIsSubmitting(false); // Make sure loading state is cleared
-            });
-    };
+            } else {
+                console.warn('Backend verification returned non-success status:', res.data.message);
+                const msg = res.data.message || 'Payment not successfully verified by backend.';
+                setSubmitError(msg);
+                setAlert({ message: msg, type: 'error' });
+                // No automatic navigation for this error, let user see it.
+            }
+        })
+        .catch(err => {
+            console.error('Payment verification failed on backend:', err.response ? err.response.data : err.message);
+            const errorMessage = err.response && err.response.data && err.response.data.message
+                ? err.response.data.message
+                : 'Payment verification failed due to network or server error.';
+            setSubmitError(errorMessage);
+            setAlert({ message: errorMessage, type: 'error' });
+            // No automatic navigation for this error, let user see it.
+        })
+        .finally(() => {
+            setIsSubmitting(false); // Make sure loading state is cleared
+        });
+}, [navigate, setFormSubmitted, setSubmitError, setAlert, setIsSubmitting]); // Add setAlert to dependency array
 
-    const onPaystackClose = () => {
-        console.log('Paystack popup closed.');
-        // User closed the popup, handle accordingly
-        navigate('/booking-confirmation?status=cancelled'); // This should work fine for cancellations
-    };
+const onPaystackClose = useCallback(() => {
+    console.log('Paystack popup closed by user.');
+    setIsSubmitting(false); // Clear submitting state
+    const message = 'Payment process cancelled by user. You can try again or select "Pay at Clinic".';
+    setSubmitError(message); // Set a temporary error for the main form flow
+    setAlert({ message: message, type: 'info' }); // Use 'info' for cancellation
+    // No immediate navigation; let user see the info message and decide
+    // You might consider navigating after a delay if you always want to redirect
+    // setTimeout(() => navigate('/booking-confirmation?status=cancelled'), 3000);
+}, [setIsSubmitting, setSubmitError, setAlert]); // Add setAlert to dependency array
+
 
 
     // --- Handlers for Form Data ---
@@ -509,380 +525,380 @@ const BookingPage = () => {
 
                 {/* Booking Form Wrapper */}
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-    <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 lg:p-10 max-w-4xl mx-auto">
+            <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 lg:p-10 max-w-4xl mx-auto">
 
-        {/* Step Indicators */}
-        <div className="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
-            {stepIndicators.map((step, index) => (
-                <div key={index} className="flex flex-col items-center flex-1 relative">
-                    <div
-                        className={`flex items-center justify-center w-12 h-12 rounded-full text-white text-xl
-                            ${index <= currentStep ? 'bg-veniviciGreen' : 'bg-gray-300'}
-                            ${index < currentStep ? 'border-2 border-veniviciGreen' : ''} transition-all duration-300`}
-                    >
-                        <i className={step.icon}></i>
-                    </div>
-                    <p className={`mt-2 text-sm font-semibold ${index <= currentStep ? 'text-veniviciDark' : 'text-gray-500'} hidden sm:block`}>
-                        {step.label}
-                    </p>
-                    {index < stepIndicators.length - 1 && (
-                        <div className={`absolute top-6 left-[calc(50%+24px)] w-[calc(100%-48px)] h-1 z-0
-                                ${index < currentStep ? 'bg-veniviciGreen' : 'bg-gray-200'}`}></div>
-                    )}
-                </div>
-            ))}
-        </div>
-
-        {/* Success/Error Messages */}
-        <AnimatePresence>
-            {formSubmitted && (
-                <motion.div
-                    key="success-alert"
-                    variants={alertVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="fixed top-24 left-1/2 -translate-x-1/2 bg-green-100 border-l-4 border-green-500 text-green-700 p-6 rounded-lg shadow-xl z-50 max-w-sm w-full"
-                    role="alert"
-                >
-                    <div className="flex items-center">
-                        <i className="fas fa-check-circle text-2xl mr-3"></i>
-                        <div>
-                            <p className="font-bold text-lg">Booking Request Sent!</p>
-                            <p className="text-sm">Thank you for your request. Our team will contact you shortly to confirm your appointment details.</p>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-            {submitError && (
-                <motion.div
-                    key="error-alert"
-                    variants={alertVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="fixed top-24 left-1/2 -translate-x-1/2 bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg shadow-xl z-50 max-w-sm w-full"
-                    role="alert"
-                >
-                    <div className="flex items-center">
-                        <i className="fas fa-exclamation-triangle text-2xl mr-3"></i>
-                        <div>
-                            <p className="font-bold text-lg">Submission Failed!</p>
-                            <p className="text-sm">There was an error sending your booking request. Please try again or contact us directly.</p>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-
-        {/* Form Content - Conditional Rendering */}
-                <AnimatePresence mode="wait">
-                    {currentStep === 0 && (
-                        <motion.div
-                            key="step0"
-                            variants={stepContentVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="pt-4"
-                        >
-                            <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Select a Service</h2>
-                            <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
-                                Explore our range of specialized physiotherapy services. Click on a service to learn more and proceed with your booking.
+                {/* Step Indicators */}
+                <div className="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
+                    {stepIndicators.map((step, index) => (
+                        <div key={index} className="flex flex-col items-center flex-1 relative">
+                            <div
+                                className={`flex items-center justify-center w-12 h-12 rounded-full text-white text-xl
+                                    ${index <= currentStep ? 'bg-veniviciGreen' : 'bg-gray-300'}
+                                    ${index < currentStep ? 'border-2 border-veniviciGreen' : ''} transition-all duration-300`}
+                            >
+                                <i className={step.icon}></i>
+                            </div>
+                            <p className={`mt-2 text-sm font-semibold ${index <= currentStep ? 'text-veniviciDark' : 'text-gray-500'} hidden sm:block`}>
+                                {step.label}
                             </p>
-
-                            {isLoadingServices ? (
-                                <div className="text-center py-8">
-                                    <i className="fas fa-spinner fa-spin text-4xl text-veniviciGreen"></i>
-                                    <p className="mt-4 text-gray-600">Loading services...</p>
-                                </div>
-                            ) : serviceFetchError ? (
-                                <div className="text-center py-8 text-red-600">
-                                    <i className="fas fa-exclamation-circle text-4xl mb-2"></i>
-                                    <p className="font-semibold">{serviceFetchError}</p>
-                                    <p className="text-sm">Please ensure the backend server is running and accessible.</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {fetchedServices.length > 0 ? (
-                                        fetchedServices.map((service) => (
-                                            <div
-                                                key={service._id}
-                                                onClick={() => handleServiceSelect(service)}
-                                                className={`border rounded-lg p-6 cursor-pointer transition-all duration-300
-                                                    ${formData.serviceId === service._id ? 'border-veniviciGreen shadow-md scale-105' : 'border-gray-200 hover:border-gray-400 hover:shadow-sm'}
-                                                    flex flex-col items-center text-center group`}
-                                            >
-                                                <i className={`${service.iconClass || 'fas fa-spa'} text-5xl mb-4
-                                                    ${formData.serviceId === service._id ? 'text-veniviciGreen' : 'text-gray-500 group-hover:text-veniviciDark'}
-                                                    transition-colors duration-300`}></i>
-                                                <h3 className="font-bold text-lg text-veniviciDark mb-2">{service.name}</h3>
-                                                <p className="text-sm text-gray-600 mb-2 flex-grow">{service.description}</p>
-                                                <p className="text-xs text-gray-500 mt-auto">Duration: {service.duration}</p>
-                                                {service.price && <p className="text-sm font-semibold text-veniviciDark mt-2">Price: ₦{service.price.toLocaleString()}</p>}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="col-span-full text-center py-8 text-gray-500">
-                                            <i className="fas fa-info-circle text-4xl mb-2"></i>
-                                            <p className="font-semibold">No services found.</p>
-                                            <p className="text-sm">Please add services to your backend database.</p>
-                                        </div>
-                                    )}
-                                </div>
+                            {index < stepIndicators.length - 1 && (
+                                <div className={`absolute top-6 left-[calc(50%+24px)] w-[calc(100%-48px)] h-1 z-0
+                                        ${index < currentStep ? 'bg-veniviciGreen' : 'bg-gray-200'}`}></div>
                             )}
-                        </motion.div>
-                    )}
+                        </div>
+                    ))}
+                </div>
 
-                    {currentStep === 1 && (
+                {/* Success/Error Messages */}
+                <AnimatePresence>
+                    {formSubmitted && (
                         <motion.div
-                            key="step1"
-                            variants={stepContentVariants}
+                            key="success-alert"
+                            variants={alertVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="pt-4"
+                            className="fixed top-24 left-1/2 -translate-x-1/2 bg-green-100 border-l-4 border-green-500 text-green-700 p-6 rounded-lg shadow-xl z-50 max-w-sm w-full"
+                            role="alert"
                         >
-                            <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Select Your Preferred Date & Time</h2>
-                            <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
-                                Choose a convenient date from the calendar and then select an available time slot for your appointment.
-                            </p>
-                            <div className="flex flex-col md:flex-row gap-8">
-                                {/* Calendar Section */}
-                                <div className="md:w-1/2 p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <button onClick={prevMonth} className="text-gray-600 hover:text-veniviciGreen text-lg p-2 rounded-full hover:bg-gray-200 transition-colors"
-                                            disabled={currentYear === today.getFullYear() && currentMonth === today.getMonth()}>
-                                            <i className="fas fa-chevron-left"></i>
-                                        </button>
-                                        <h3 className="font-semibold text-xl text-veniviciDark">{monthNames[currentMonth]} {currentYear}</h3>
-                                        <button onClick={nextMonth} className="text-gray-600 hover:text-veniviciGreen text-lg p-2 rounded-full hover:bg-gray-200 transition-colors">
-                                            <i className="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div className="grid grid-cols-7 text-center text-sm font-bold text-gray-700 mb-2">
-                                        {dayNames.map(day => <div key={day}>{day}</div>)}
-                                    </div>
-                                    <div className="grid grid-cols-7 gap-2">
-                                        {[...Array(getFirstDayOfMonth(currentYear, currentMonth)).keys()].map((_, i) => (
-                                            <div key={`empty-${i}`} className="p-2"></div>
-                                        ))}
-                                        {[...Array(getDaysInMonth(currentYear, currentMonth)).keys()].map((dayIndex) => {
-                                            const day = dayIndex + 1;
-                                            const isSelected = formData.selectedDate && formData.selectedDate.getDate() === day && formData.selectedDate.getMonth() === currentMonth && formData.selectedDate.getFullYear() === currentYear;
-                                            const isDisabled = isPastDate(currentYear, currentMonth, day);
-                                            return (
-                                                <button
-                                                    key={day}
-                                                    onClick={() => !isDisabled && handleDateSelect(day)}
-                                                    className={`p-2 rounded-full text-sm font-medium transition-colors duration-200
-                                                        ${isDisabled ? 'text-gray-400 cursor-not-allowed opacity-60' : 'hover:bg-veniviciGreen hover:text-white'}
-                                                        ${isSelected ? 'bg-veniviciGreen text-white shadow-md' : 'text-gray-800 bg-gray-100'}`}
-                                                    disabled={isDisabled}
-                                                >
-                                                    {day}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Time Slot Section */}
-                                <div className="md:w-1/2 p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-                                    <h3 className="font-semibold text-xl text-veniviciDark mb-4 text-center">Available Time Slots</h3>
-                                    <div className="flex flex-wrap gap-2 justify-center">
-                                        {availableTimeSlots.map((slot) => (
-                                            <button
-                                                key={slot}
-                                                onClick={() => handleTimeSlotSelect(slot)}
-                                                className={`px-4 py-2 rounded-md border text-sm transition-colors duration-200 flex-grow
-                                                    ${formData.selectedTimeSlot === slot ? 'bg-veniviciGreen text-white border-veniviciGreen shadow-sm' : 'border-gray-300 text-gray-800 hover:bg-gray-100'}`}
-                                            >
-                                                {slot}
-                                            </button>
-                                        ))}
-                                        {availableTimeSlots.length === 0 && (
-                                            <p className="text-gray-500 text-center w-full">No available time slots for selected date.</p>
-                                        )}
-                                    </div>
+                            <div className="flex items-center">
+                                <i className="fas fa-check-circle text-2xl mr-3"></i>
+                                <div>
+                                    <p className="font-bold text-lg">Booking Request Sent!</p>
+                                    <p className="text-sm">Thank you for your request. Our team will contact you shortly to confirm your appointment details.</p>
                                 </div>
                             </div>
                         </motion.div>
                     )}
-
-                    {currentStep === 2 && (
+                    {submitError && (
                         <motion.div
-                            key="step2"
-                            variants={stepContentVariants}
+                            key="error-alert"
+                            variants={alertVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="pt-4"
+                            className="fixed top-24 left-1/2 -translate-x-1/2 bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg shadow-xl z-50 max-w-sm w-full"
+                            role="alert"
                         >
-                            <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Your Contact Details</h2>
-                            <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
-                                Please provide your contact information so our team can reach out to confirm your appointment. All fields marked with * are required.
-                            </p>
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label htmlFor="firstName" className="block text-gray-700 text-sm font-bold mb-2">First Name *</label>
-                                        <input type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., John" required />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="lastName" className="block text-gray-700 text-sm font-bold mb-2">Last Name *</label>
-                                        <input type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., Doe" required />
-                                    </div>
-                                </div>
+                            <div className="flex items-center">
+                                <i className="fas fa-exclamation-triangle text-2xl mr-3"></i>
                                 <div>
-                                    <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email Address *</label>
-                                    <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., your.email@example.com" required />
-                                </div>
-                                <div>
-                                    <label htmlFor="phone" className="block text-gray-700 text-sm font-bold mb-2">Phone Number *</label>
-                                    <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., +234 801 234 5678" required />
-                                </div>
-                                <div>
-                                    <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Additional Notes (Optional)</label>
-                                    <textarea id="message" name="message" rows="4" value={formData.message} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., Any specific requests, conditions, or questions..."></textarea>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <motion.div
-                            key="step3"
-                            variants={stepContentVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="pt-4 text-center"
-                        >
-                            <h2 className="text-2xl font-semibold text-veniviciDark mb-4">Review Your Appointment Details</h2>
-                            <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
-                                Please review all the details below. If everything looks correct, click "Book Appointment" to send your request.
-                            </p>
-                            <div className="flex justify-center mb-8">
-                                <img src={testimonialBg} alt="Summary Icon" className="w-24 h-24 object-contain rounded-full shadow-lg" /> {/* Added rounded-full & shadow for better presentation */}
-                            </div>
-
-                            <div className="text-left bg-gray-50 p-6 rounded-lg shadow-inner max-w-md mx-auto space-y-3">
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Customer:</span> {formData.firstName} {formData.lastName}
-                                </p>
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Email:</span> {formData.email}
-                                </p>
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Phone:</span> {formData.phone}
-                                </p>
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Service:</span> {formData.serviceName || 'Not selected'}
-                                </p>
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Date:</span>{' '}
-                                    {formData.selectedDate ? formData.selectedDate.toDateString() : 'Not selected'}
-                                </p>
-                                <p className="text-gray-700">
-                                    <span className="font-semibold text-veniviciDark">Time:</span>{' '}
-                                    {formData.selectedTimeSlot || 'Not selected'}
-                                </p>
-                                {formData.message && (
-                                    <p className="text-gray-700">
-                                        <span className="font-semibold text-veniviciDark">Notes:</span> {formData.message}
-                                    </p>
-                                )}
-                                <p className="text-xl font-bold text-veniviciDark mt-4">
-                                    Total: <span className="text-veniviciGreen">₦{totalAmount.toLocaleString()}</span>
-                                </p>
-
-                                {/* Payment Options */}
-                                <div className="mt-6">
-                                    <h3 className="font-semibold text-lg text-veniviciDark mb-3">Payment Option</h3>
-                                    <div className="flex flex-col space-y-3">
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="radio"
-                                                className="form-radio h-5 w-5 text-veniviciGreen"
-                                                name="paymentOption"
-                                                value="payNow"
-                                                checked={formData.paymentOption === 'payNow'}
-                                                onChange={handlePaymentOptionChange}
-                                            />
-                                            <span className="ml-2 text-gray-700">Pay Now (Online Payment)</span>
-                                        </label>
-                                        <label className="inline-flex items-center">
-                                            <input
-                                                type="radio"
-                                                className="form-radio h-5 w-5 text-veniviciGreen"
-                                                name="paymentOption"
-                                                value="payLater"
-                                                checked={formData.paymentOption === 'payLater'}
-                                                onChange={handlePaymentOptionChange}
-                                            />
-                                            <span className="ml-2 text-gray-700">Pay at Clinic</span>
-                                        </label>
-                                    </div>
+                                    <p className="font-bold text-lg">Submission Failed!</p>
+                                    <p className="text-sm">There was an error sending your booking request. Please try again or contact us directly.</p>
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Navigation Buttons (Outside AnimatePresence to remain persistent) */}
-                <div className={`flex ${currentStep === 0 ? 'justify-end' : 'justify-between'} mt-8 pt-4 border-t border-gray-200`}>
-                    {currentStep > 0 && (
-                        <motion.button
-                            type="button"
-                            onClick={goToPrevStep}
-                            className="px-6 py-3 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-100 transition duration-300 font-semibold flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <i className="fas fa-arrow-left mr-2"></i> Go Back
-                        </motion.button>
-                    )}
-                    {currentStep < stepIndicators.length - 1 && (
-                        <motion.button
-                            type="button"
-                            onClick={goToNextStep}
-                            className="bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Next {stepIndicators[currentStep + 1].label} <i className="fas fa-arrow-right ml-2"></i>
-                        </motion.button>
-                    )}
-                    {currentStep === stepIndicators.length - 1 && (
-                        <motion.button
-                            type="submit"
-                            onClick={handleSubmit}
-                            className="bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold w-full sm:w-auto flex items-center justify-center"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <i className="fas fa-spinner fa-spin mr-2"></i> Processing...
-                                </>
-                            ) : (
-                                <>
-                                    Book Appointment <i className="fas fa-check ml-2"></i>
-                                </>
-                            )}
-                        </motion.button>
-                    )}
-                </div>
+                {/* Form Content - Conditional Rendering */}
+                        <AnimatePresence mode="wait">
+                            {currentStep === 0 && (
+                                <motion.div
+                                    key="step0"
+                                    variants={stepContentVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="pt-4"
+                                >
+                                    <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Select a Service</h2>
+                                    <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
+                                        Explore our range of specialized physiotherapy services. Click on a service to learn more and proceed with your booking.
+                                    </p>
 
-                {currentStep === 0 && (
-                    <p className="text-sm text-gray-500 text-center mt-6">
-                        *This is a request form. Your appointment will be confirmed by our team shortly after submission.
-                    </p>
-        )}
-    </div>
-</div>
+                                    {isLoadingServices ? (
+                                        <div className="text-center py-8">
+                                            <i className="fas fa-spinner fa-spin text-4xl text-veniviciGreen"></i>
+                                            <p className="mt-4 text-gray-600">Loading services...</p>
+                                        </div>
+                                    ) : serviceFetchError ? (
+                                        <div className="text-center py-8 text-red-600">
+                                            <i className="fas fa-exclamation-circle text-4xl mb-2"></i>
+                                            <p className="font-semibold">{serviceFetchError}</p>
+                                            <p className="text-sm">Please ensure the backend server is running and accessible.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {fetchedServices.length > 0 ? (
+                                                fetchedServices.map((service) => (
+                                                    <div
+                                                        key={service._id}
+                                                        onClick={() => handleServiceSelect(service)}
+                                                        className={`border rounded-lg p-6 cursor-pointer transition-all duration-300
+                                                            ${formData.serviceId === service._id ? 'border-veniviciGreen shadow-md scale-105' : 'border-gray-200 hover:border-gray-400 hover:shadow-sm'}
+                                                            flex flex-col items-center text-center group`}
+                                                    >
+                                                        <i className={`${service.iconClass || 'fas fa-spa'} text-5xl mb-4
+                                                            ${formData.serviceId === service._id ? 'text-veniviciGreen' : 'text-gray-500 group-hover:text-veniviciDark'}
+                                                            transition-colors duration-300`}></i>
+                                                        <h3 className="font-bold text-lg text-veniviciDark mb-2">{service.name}</h3>
+                                                        <p className="text-sm text-gray-600 mb-2 flex-grow">{service.description}</p>
+                                                        <p className="text-xs text-gray-500 mt-auto">Duration: {service.duration}</p>
+                                                        {service.price && <p className="text-sm font-semibold text-veniviciDark mt-2">Price: ₦{service.price.toLocaleString()}</p>}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="col-span-full text-center py-8 text-gray-500">
+                                                    <i className="fas fa-info-circle text-4xl mb-2"></i>
+                                                    <p className="font-semibold">No services found.</p>
+                                                    <p className="text-sm">Please add services to your backend database.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+
+                            {currentStep === 1 && (
+                                <motion.div
+                                    key="step1"
+                                    variants={stepContentVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="pt-4"
+                                >
+                                    <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Select Your Preferred Date & Time</h2>
+                                    <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
+                                        Choose a convenient date from the calendar and then select an available time slot for your appointment.
+                                    </p>
+                                    <div className="flex flex-col md:flex-row gap-8">
+                                        {/* Calendar Section */}
+                                        <div className="md:w-1/2 p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <button onClick={prevMonth} className="text-gray-600 hover:text-veniviciGreen text-lg p-2 rounded-full hover:bg-gray-200 transition-colors"
+                                                    disabled={currentYear === today.getFullYear() && currentMonth === today.getMonth()}>
+                                                    <i className="fas fa-chevron-left"></i>
+                                                </button>
+                                                <h3 className="font-semibold text-xl text-veniviciDark">{monthNames[currentMonth]} {currentYear}</h3>
+                                                <button onClick={nextMonth} className="text-gray-600 hover:text-veniviciGreen text-lg p-2 rounded-full hover:bg-gray-200 transition-colors">
+                                                    <i className="fas fa-chevron-right"></i>
+                                                </button>
+                                            </div>
+                                            <div className="grid grid-cols-7 text-center text-sm font-bold text-gray-700 mb-2">
+                                                {dayNames.map(day => <div key={day}>{day}</div>)}
+                                            </div>
+                                            <div className="grid grid-cols-7 gap-2">
+                                                {[...Array(getFirstDayOfMonth(currentYear, currentMonth)).keys()].map((_, i) => (
+                                                    <div key={`empty-${i}`} className="p-2"></div>
+                                                ))}
+                                                {[...Array(getDaysInMonth(currentYear, currentMonth)).keys()].map((dayIndex) => {
+                                                    const day = dayIndex + 1;
+                                                    const isSelected = formData.selectedDate && formData.selectedDate.getDate() === day && formData.selectedDate.getMonth() === currentMonth && formData.selectedDate.getFullYear() === currentYear;
+                                                    const isDisabled = isPastDate(currentYear, currentMonth, day);
+                                                    return (
+                                                        <button
+                                                            key={day}
+                                                            onClick={() => !isDisabled && handleDateSelect(day)}
+                                                            className={`p-2 rounded-full text-sm font-medium transition-colors duration-200
+                                                                ${isDisabled ? 'text-gray-400 cursor-not-allowed opacity-60' : 'hover:bg-veniviciGreen hover:text-white'}
+                                                                ${isSelected ? 'bg-veniviciGreen text-white shadow-md' : 'text-gray-800 bg-gray-100'}`}
+                                                            disabled={isDisabled}
+                                                        >
+                                                            {day}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Time Slot Section */}
+                                        <div className="md:w-1/2 p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
+                                            <h3 className="font-semibold text-xl text-veniviciDark mb-4 text-center">Available Time Slots</h3>
+                                            <div className="flex flex-wrap gap-2 justify-center">
+                                                {availableTimeSlots.map((slot) => (
+                                                    <button
+                                                        key={slot}
+                                                        onClick={() => handleTimeSlotSelect(slot)}
+                                                        className={`px-4 py-2 rounded-md border text-sm transition-colors duration-200 flex-grow
+                                                            ${formData.selectedTimeSlot === slot ? 'bg-veniviciGreen text-white border-veniviciGreen shadow-sm' : 'border-gray-300 text-gray-800 hover:bg-gray-100'}`}
+                                                    >
+                                                        {slot}
+                                                    </button>
+                                                ))}
+                                                {availableTimeSlots.length === 0 && (
+                                                    <p className="text-gray-500 text-center w-full">No available time slots for selected date.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {currentStep === 2 && (
+                                <motion.div
+                                    key="step2"
+                                    variants={stepContentVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="pt-4"
+                                >
+                                    <h2 className="text-2xl font-semibold text-veniviciDark mb-4 text-center">Your Contact Details</h2>
+                                    <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
+                                        Please provide your contact information so our team can reach out to confirm your appointment. All fields marked with * are required.
+                                    </p>
+                                    <div className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label htmlFor="firstName" className="block text-gray-700 text-sm font-bold mb-2">First Name *</label>
+                                                <input type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., John" required />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="lastName" className="block text-gray-700 text-sm font-bold mb-2">Last Name *</label>
+                                                <input type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., Doe" required />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email Address *</label>
+                                            <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., your.email@example.com" required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="phone" className="block text-gray-700 text-sm font-bold mb-2">Phone Number *</label>
+                                            <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., +234 801 234 5678" required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Additional Notes (Optional)</label>
+                                            <textarea id="message" name="message" rows="4" value={formData.message} onChange={handleInputChange} className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-veniviciGreen" placeholder="E.g., Any specific requests, conditions, or questions..."></textarea>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {currentStep === 3 && (
+                                <motion.div
+                                    key="step3"
+                                    variants={stepContentVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="pt-4 text-center"
+                                >
+                                    <h2 className="text-2xl font-semibold text-veniviciDark mb-4">Review Your Appointment Details</h2>
+                                    <p className="text-md text-gray-600 mb-8 text-center max-w-xl mx-auto">
+                                        Please review all the details below. If everything looks correct, click "Book Appointment" to send your request.
+                                    </p>
+                                    <div className="flex justify-center mb-8">
+                                        <img src={testimonialBg} alt="Summary Icon" className="w-24 h-24 object-contain rounded-full shadow-lg" />
+                                    </div>
+
+                                    <div className="text-left bg-gray-50 p-6 rounded-lg shadow-inner max-w-md mx-auto space-y-3">
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Customer:</span> {formData.firstName} {formData.lastName}
+                                        </p>
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Email:</span> {formData.email}
+                                        </p>
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Phone:</span> {formData.phone}
+                                        </p>
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Service:</span> {formData.serviceName || 'Not selected'}
+                                        </p>
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Date:</span>{' '}
+                                            {formData.selectedDate ? formData.selectedDate.toDateString() : 'Not selected'}
+                                        </p>
+                                        <p className="text-gray-700">
+                                            <span className="font-semibold text-veniviciDark">Time:</span>{' '}
+                                            {formData.selectedTimeSlot || 'Not selected'}
+                                        </p>
+                                        {formData.message && (
+                                            <p className="text-gray-700">
+                                                <span className="font-semibold text-veniviciDark">Notes:</span> {formData.message}
+                                            </p>
+                                        )}
+                                        <p className="text-xl font-bold text-veniviciDark mt-4">
+                                            Total: <span className="text-veniviciGreen">₦{totalAmount.toLocaleString()}</span>
+                                        </p>
+
+                                        {/* Payment Options */}
+                                        <div className="mt-6">
+                                            <h3 className="font-semibold text-lg text-veniviciDark mb-3">Payment Option</h3>
+                                            <div className="flex flex-col space-y-3">
+                                                <label className="inline-flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        className="form-radio h-5 w-5 text-veniviciGreen"
+                                                        name="paymentOption"
+                                                        value="payNow"
+                                                        checked={formData.paymentOption === 'payNow'}
+                                                        onChange={handlePaymentOptionChange}
+                                                    />
+                                                    <span className="ml-2 text-gray-700">Pay Now (Online Payment)</span>
+                                                </label>
+                                                <label className="inline-flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        className="form-radio h-5 w-5 text-veniviciGreen"
+                                                        name="paymentOption"
+                                                        value="payLater"
+                                                        checked={formData.paymentOption === 'payLater'}
+                                                        onChange={handlePaymentOptionChange}
+                                                    />
+                                                    <span className="ml-2 text-gray-700">Pay at Clinic</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Navigation Buttons (Outside AnimatePresence to remain persistent) */}
+                        <div className={`flex ${currentStep === 0 ? 'justify-end' : 'justify-between'} mt-8 pt-4 border-t border-gray-200`}>
+                            {currentStep > 0 && (
+                                <motion.button
+                                    type="button"
+                                    onClick={goToPrevStep}
+                                    className="px-6 py-3 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-100 transition duration-300 font-semibold flex items-center"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <i className="fas fa-arrow-left mr-2"></i> Go Back
+                                </motion.button>
+                            )}
+                            {currentStep < stepIndicators.length - 1 && (
+                                <motion.button
+                                    type="button"
+                                    onClick={goToNextStep}
+                                    className="bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold flex items-center"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Next {stepIndicators[currentStep + 1].label} <i className="fas fa-arrow-right ml-2"></i>
+                                </motion.button>
+                            )}
+                            {currentStep === stepIndicators.length - 1 && (
+                                <motion.button
+                                    type="submit"
+                                    onClick={handleSubmit}
+                                    className="bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold w-full sm:w-auto flex items-center justify-center"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin mr-2"></i> Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Book Appointment <i className="fas fa-check ml-2"></i>
+                                        </>
+                                    )}
+                                </motion.button>
+                            )}
+                        </div>
+
+                        {currentStep === 0 && (
+                            <p className="text-sm text-gray-500 text-center mt-6">
+                                *This is a request form. Your appointment will be confirmed by our team shortly after submission.
+                            </p>
+                        )}
+            </div>
+        </div>
 
                 {/* --- New Sections Below Booking Form --- */}
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 space-y-20">

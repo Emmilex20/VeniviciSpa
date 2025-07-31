@@ -6,9 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import AnimatedButton from '../components/AnimatedButton';
 import ServiceCard from '../components/ServiceCard';
-import TestimonialCard from '../components/TestimonialCard';
 import { teamMembers } from '../data/teamData';
-import { testimonials } from '../data/testimonialsData'; // Correct import for testimonials
 import CountUpAnimation from '../components/CountUpAnimation';
 import Testimonials from '../components/Testimonials';
 
