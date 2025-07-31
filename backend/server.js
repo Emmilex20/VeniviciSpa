@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 5000;
 // --- CORS Configuration ---
 const allowedOrigins = [
     'http://localhost:3000',           // For local frontend development
-    'https://venivici-spa.vercel.app'  // For your Vercel-hosted frontend
+    'https://venivici-spa.vercel.app',  // For your Vercel-hosted frontend
+    'https://venivici-mbi081qu0-emmanuel-raphaels-projects.vercel.app'
     // Add your final production frontend URLs here when deployed, e.g.:
     // 'https://www.venivici.com',
     // 'https://venivici.com'
