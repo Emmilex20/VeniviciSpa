@@ -414,7 +414,7 @@ const BookingPage = () => {
                         ]
                     },
                     // The callback URL should be configured on your Paystack dashboard
-                    callback_url: "https://aead35b2cc9c.ngrok-free.app/booking-confirmation" // Still useful for clarity
+                    callback_url: "https://venivici-spa.vercel.app/booking-confirmation" // Still useful for clarity
                 };
 
                 // Set the config state, which will trigger the useEffect to open Paystack modal
