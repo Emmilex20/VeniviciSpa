@@ -166,7 +166,7 @@ const Home = () => {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      <div>
+      <div className="pt-[72px] sm:pt-[80px] md:pt-[96px]">
 
         {/* --- Hero Section --- */}
         <section
@@ -196,7 +196,7 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
             <motion.div className="text-center md:text-left">
@@ -229,7 +229,7 @@ const Home = () => {
               className="relative rounded-lg overflow-hidden shadow-2xl"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <img
@@ -249,14 +249,14 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
             <motion.div
               className="relative rounded-lg overflow-hidden shadow-2xl"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <img
@@ -301,7 +301,7 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Why Choose <span className="text-veniviciGreen">Venivici Spa?</span>
@@ -388,7 +388,7 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
             Our State-of-the-Art <span className="text-veniviciGreen">Facilities</span>
@@ -401,7 +401,7 @@ const Home = () => {
               className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg overflow-hidden"
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.7 }}
             >
               <img src={facilitiesImg1} alt="Spa Treatment Room" className="w-full h-64 object-cover rounded-lg shadow-md" />
@@ -425,7 +425,7 @@ const Home = () => {
               }}
               initial="hidden"
               whileInView={["visible", "mdVisible"]}
-              viewport={{ once: true, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               <h3 className="text-2xl sm:text-3xl font-serif text-veniviciDark mb-4">Designed for Your Ultimate Comfort</h3>
               <ul className="text-base text-gray-700 space-y-3 list-none pl-0">
@@ -457,119 +457,7 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* --- Featured Services Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Our Signature <span className="text-veniviciGreen">Treatments & Services</span>
-          </h2>
-          {loadingServices ? (
-            <p className="text-center text-veniviciDark text-lg">Loading services...</p>
-          ) : servicesError ? (
-            <p className="text-center text-red-600 text-lg">Error loading services: {servicesError}</p>
-          ) : featuredServices.length === 0 ? ( // Added check for empty array
-            <p className="text-center text-gray-700 text-lg">No featured services available at the moment.</p>
-          ) : (
-            <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredServices.map((service, index) => (
-                <ServiceCard
-                  key={service._id} // Use MongoDB's _id
-                  service={{
-                    id: service._id,
-                    title: service.name,
-                    description: service.description,
-                    price: service.price.toLocaleString(), // Format price for display
-                    duration: service.duration,
-                    icon: service.iconClass,
-                    imageUrl: serviceImageMap[service.name], // Get image from map
-                    inclusions: service.inclusions,
-                    type: service.type, // Will be undefined but harmless
-                  }}
-                  index={index}
-                  onLearnMore={handleLearnMore} // Pass the handleLearnMore function
-                  variants={itemVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                />
-              ))}
-            </div>
-          )}
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            <AnimatedButton to="/services">View All Services</AnimatedButton>
-          </motion.div>
-        </motion.section>
-
-        {/* --- Special Offers & Packages Section --- */}
-        <motion.section
-          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
-            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
-          </h2>
-          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
-            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
-          </p>
-          {loadingServices ? (
-            <p className="text-center text-veniviciDark text-lg">Loading offers...</p>
-          ) : servicesError ? (
-            <p className="text-center text-red-600 text-lg">Error loading offers: {servicesError}</p>
-          ) : homepageOffers.length === 0 ? ( // Added check for empty array
-            <p className="text-center text-gray-700 text-lg">No exclusive offers available at the moment.</p>
-          ) : (
-            <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {homepageOffers.map((offer, index) => (
-                <ServiceCard // Re-using ServiceCard for consistency
-                  key={offer._id}
-                  service={{
-                    id: offer._id,
-                    title: offer.name,
-                    description: offer.description,
-                    price: offer.price.toLocaleString(), // Format price for display
-                    duration: offer.duration, // If offers have duration
-                    icon: offer.iconClass,
-                    imageUrl: serviceImageMap[offer.name],
-                    inclusions: offer.inclusions,
-                    type: offer.type, // Will be undefined but harmless
-                  }}
-                  index={index}
-                  onLearnMore={handleLearnMore}
-                  variants={itemVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                />
-              ))}
-            </div>
-          )}
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            {/* Consider linking to a dedicated offers page, or filter on booking page */}
-            <AnimatedButton to="/services" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
-          </motion.div>
-        </motion.section>
-
-        {/* --- Meet Our Experts Section --- */}
+        {/* --- Meet Our Experts Section (New) --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
           variants={sectionVariants}
@@ -589,12 +477,12 @@ const Home = () => {
                 key={expert.id}
                 className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center"
                 variants={itemVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
+                initial="hidden" // Ensure initial state is applied
+                whileInView="visible" // Ensure it tries to become visible
+                viewport={{ once: true, amount: 0.1 }} 
               >
                 <img
-                  src={expert.img} // Using placeholder for now, you can add expert-specific images later
+                  src={expertPlaceholder} // Using placeholder for now
                   alt={expert.name}
                   className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-veniviciGreen shadow-md"
                 />
@@ -615,22 +503,140 @@ const Home = () => {
           </motion.div>
         </motion.section>
 
+        {/* --- Featured Services Section --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Our Signature <span className="text-veniviciGreen">Treatments & Services</span>
+          </h2>
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredServices.map((service, index) => (
+              // Pass the handleLearnMore function as onLearnMore prop
+              <ServiceCard key={service.id} service={service} index={index} onLearnMore={handleLearnMore} variants={itemVariants} 
+              initial="hidden" // Pass initial and whileInView to ServiceCard
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              />
+            ))}
+          </div>
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <AnimatedButton to="/services">View All Services</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
+        {/* --- Special Offers & Packages Section --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Exclusive <span className="text-veniviciGreen">Offers & Packages</span>
+          </h2>
+          <p className="text-base sm:text-xl text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            Discover our specially curated packages designed to give you the ultimate wellness experience at exceptional value.
+          </p>
+          <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {homepageOffers.map((offer) => (
+              <motion.div
+                key={offer.id}
+                className="bg-white rounded-lg shadow-xl overflow-hidden p-6 text-center border-t-4 border-veniviciGold hover:shadow-2xl transition-shadow duration-300"
+                variants={itemVariants}
+                initial="hidden" // Ensure initial state is applied
+                whileInView="visible" // Ensure it tries to become visible
+                viewport={{ once: true, amount: 0.1 }}
+              >
+                {/* Display image for offers on homepage as well */}
+                {offer.imageUrl && (
+                  <img src={offer.imageUrl} alt={offer.title} className="w-full h-48 object-cover rounded-md mb-4" />
+                )}
+                <div className="text-veniviciGreen text-5xl mb-4">
+                  <i className={offer.icon}></i>
+                </div>
+                <h3 className="text-2xl font-semibold text-veniviciDark mb-2">{offer.title}</h3>
+                <p className="text-gray-700 text-base leading-relaxed mb-4 flex-grow">{offer.description}</p>
+                <div className="text-veniviciGold text-2xl font-bold mb-4">{offer.price}</div>
+                <Link to="/booking" className="inline-block bg-veniviciGreen text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition duration-300 font-semibold">
+                  Book Now
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            {/* Consider linking to a dedicated offers page, or filter on booking page */}
+            <AnimatedButton to="/services" className="bg-transparent border-2 border-veniviciGreen text-veniviciGreen hover:bg-veniviciGreen hover:text-white">See All Offers</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
+        {/* --- Meet Our Experts Section --- */}
+        <motion.section
+          className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-veniviciLightGray"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-veniviciDark text-center mb-12">
+            Meet Our <span className="text-veniviciGreen">Wellness Experts</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredTestimonials.map((testimonial, index) => (
+              <TestimonialCard
+                key={testimonial.id}
+                testimonial={testimonial}
+                index={index}
+                initial="hidden" // Ensure initial state is applied
+                whileInView="visible" // Ensure it tries to become visible
+                viewport={{ once: true, amount: 0.1 }}
+              />
+            ))}
+          </div>
+          <motion.div
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <AnimatedButton to="/about">View All Team Members</AnimatedButton>
+          </motion.div>
+        </motion.section>
+
         {/* --- Quick Facts / Achievements Section (Now with Count-Up Animation!) --- */}
         <motion.section
           className="py-16 px-6 sm:px-8 md:px-12 lg:px-16 bg-gradient-to-r from-veniviciGreen to-[#5cb85c] text-white text-center"
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-12">
             Venivici by the <span className="text-veniviciGold">Numbers</span>
           </h2>
           <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
+            initial="hidden" // Ensure initial state is applied
+            whileInView="visible" // Ensure it tries to become visible
+            viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={5} suffix="+" />
@@ -638,9 +644,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Years of Experience</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
+            initial="hidden" // Ensure initial state is applied
+            whileInView="visible" // Ensure it tries to become visible
+            viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={1000} suffix="+" />
@@ -648,9 +654,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Happy Clients</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
+            initial="hidden" // Ensure initial state is applied
+            whileInView="visible" // Ensure it tries to become visible
+            viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={15} suffix="+" />
@@ -658,9 +664,9 @@ const Home = () => {
               <p className="text-xl font-semibold">Specialized Services</p>
             </motion.div>
             <motion.div className="flex flex-col items-center" variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
+            initial="hidden" // Ensure initial state is applied
+            whileInView="visible" // Ensure it tries to become visible
+            viewport={{ once: true, amount: 0.1 }}
             >
               <div className="text-veniviciGold text-6xl font-bold mb-2">
                 <CountUpAnimation value={98} suffix="%" />
@@ -676,7 +682,7 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <motion.div className="text-center md:text-left" variants={itemVariants}>
@@ -712,7 +718,7 @@ const Home = () => {
               className="relative rounded-lg overflow-hidden shadow-2xl h-80 md:h-[450px]"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0.1 }}
+              viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <iframe
@@ -740,7 +746,7 @@ const Home = () => {
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: 0.3 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-6">
             Ready to <span className="text-veniviciGold">Rejuvenate?</span>
